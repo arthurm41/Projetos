@@ -276,13 +276,6 @@ HTTP 422 Unprocessable Entity
 |---|---|
 | *(Gabriel e Arthur)* | Back-End Developer |
 
-<br/>
-
-<h2>📄 Licença</h2>
-
-Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-<br/>
 
 ---
 
