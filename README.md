@@ -57,7 +57,7 @@ Funciona como um painel de alertas para o almoxarife saber o que precisa ser rep
 CamadaTecnologiaBack-EndLaravel (PHP)Banco de DadosMySQLORMEloquent ORMAutenticaçãoLaravel SanctumPadrão de APIRESTful — Respostas em JSONEstilo de CódigoPSR-12 + Clean CodeTestes de RotaInsomnia / Postman
 <br/>
 <h2>🗄️ Modelagem do Banco de Dados</h2>
-```
+
 books
 ├── id
 ├── title
@@ -118,7 +118,7 @@ users
 - Laravel CLI
 
 <h3>Passo a passo</h3>
-```bash
+bash
 # 1. Clone o repositório
 git clone https://github.com/seu-usuario/senaistock.git
 cd senaistock
@@ -148,7 +148,7 @@ A API estará disponível em http://localhost:8000/api
 
 <br/>
 <h2>📁 Estrutura do Projeto</h2>
-```
+
 senaistock/
 ├── app/
 │   ├── Http/
@@ -172,19 +172,19 @@ senaistock/
 ├── routes/
 │   └── api.php
 └── tests/
-```
+
 <br/>
 <h2>📋 Exemplos de Requisição</h2>
 <h3>Login</h3>
-```json
+json
 POST /api/login
 {
   "email": "almoxarife@senai.br",
   "password": "senha123"
 }
-```
+
 <h3>Registrar Entrada de Estoque</h3>
-```json
+json
 POST /api/stock/entry
 Authorization: Bearer {token}
 {
@@ -194,7 +194,7 @@ Authorization: Bearer {token}
 }
 
 <h3>Registrar Saída de Estoque</h3>
-```json
+json
 POST /api/stock/exit
 Authorization: Bearer {token}
 
@@ -204,7 +204,7 @@ Authorization: Bearer {token}
   "description": "Turma A — Eletrotécnica"
 }
 <h3>Resposta — Estoque Insuficiente</h3>
-```json
+json
 HTTP 422 Unprocessable Entity
 {
 "message": "Estoque insuficiente.",
@@ -220,13 +220,7 @@ HTTP 422 Unprocessable Entity
 
 | Nome | Função |
 |---|---|
-| *(seu nome aqui)* | Back-End Developer |
-
-<br/>
-
-<h2>📄 Licença</h2>
-
-Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+| *(Gabriel e Arthur)* | Back-End Developer |
 
 <br/>
 
@@ -234,7 +228,6 @@ Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) par
 
 <div align="center">
 
-<p>Feito com ❤️ para o SENAI</p>
 
 <img src="https://img.shields.io/badge/status-em%20desenvolvimento-yellow?style=flat-square"/>
 <img src="https://img.shields.io/badge/vers%C3%A3o-1.0.0-blue?style=flat-square"/>
