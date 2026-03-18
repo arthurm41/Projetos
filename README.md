@@ -1,86 +1,118 @@
 <div align="center">
+
 <img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white"/>
 <img src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white"/>
 <img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white"/>
 <img src="https://img.shields.io/badge/REST_API-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
+
 <br/><br/>
+
 <h1>📚 SenaiStock</h1>
+
 <p><strong>Sistema de Controle de Estoque de Livros Didáticos — SENAI</strong></p>
+
 <p><em>Uma API RESTful desenvolvida em Laravel para gerenciar entradas e saídas de livros no almoxarifado das unidades de ensino do SENAI, garantindo que nenhuma turma fique sem material.</em></p>
 
+---
+
 </div>
+
 <br/>
+
 <h2>🎯 Sobre o Projeto</h2>
-O SenaiStock nasceu de uma dor real: livros chegando às centenas no almoxarifado, sendo distribuídos aos instrutores sem controle, e o estoque zerando justamente no momento em que uma turma mais precisava.
-Este sistema resolve isso de forma direta e confiável — registrando cada entrada vinda da editora e cada saída para as turmas, mantendo o saldo sempre atualizado em tempo real.
 
-Missão: Nunca mais descobrir que o estoque acabou tarde demais.
+O **SenaiStock** surgiu de um problema silencioso: livros chegavam e saiam em grandes remessas, eram guargados de forma desorganizada e sem controle.
+Este sistema resolve isso de forma direta e confiável — registrando cada **entrada** vinda da editora e cada **saída** para as turmas, mantendo o saldo sempre atualizado em tempo real.
+
+> **Missão:** Nunca mais descobrir que o estoque acabou tarde demais.
 
 <br/>
+
 <h2>⚙️ Funcionalidades</h2>
+
 <h3>🔐 1. Autenticação</h3>
 
-Login seguro via token (Laravel Sanctum)
-Acesso restrito a Almoxarifes e Coordenadores
-Rotas protegidas por middleware de autenticação
+- Login seguro via token (Laravel Sanctum)
+- Acesso restrito a **Almoxarifes** e **Coordenadores**
+- Rotas protegidas por middleware de autenticação
 
 <h3>📖 2. Catálogo de Livros</h3>
 
-Cadastro completo de títulos com:
-
-Título do livro
-ISBN (identificador único)
-Matéria / disciplina relacionada
-
-
-Listagem, atualização e remoção de títulos
+- Cadastro completo de títulos com:
+  - **Título** do livro
+  - **ISBN** (identificador único)
+  - **Matéria** / disciplina relacionada
+- Listagem, atualização e remoção de títulos
 
 <h3>📦 3. Entrada de Estoque (Abastecimento)</h3>
 
-Registra a chegada de novas remessas da editora
-O usuário informa o livro e a quantidade recebida
-O sistema soma automaticamente ao saldo atual
+- Registra a chegada de novas remessas da editora
+- O usuário informa o **livro** e a **quantidade recebida**
+- O sistema **soma automaticamente** ao saldo atual
 
 <h3>📤 4. Saída de Estoque (Baixa Manual)</h3>
 
-Registra a retirada de livros para as turmas
-O usuário informa o livro, a quantidade e o destino (ex: "Turma A — Elétrica")
-Regra de negócio crítica: A operação é bloqueada automaticamente se a quantidade solicitada for maior do que o saldo disponível, retornando erro 422 – Estoque Insuficiente
+- Registra a retirada de livros para as turmas
+- O usuário informa o livro, a quantidade e o destino (ex: *"Turma A — Elétrica"*)
+- **Regra de negócio crítica:** A operação é **bloqueada** automaticamente se a quantidade solicitada for maior do que o saldo disponível, retornando erro `422 – Estoque Insuficiente`
 
 <h3>🔔 5. Monitoramento de Saldo Baixo</h3>
 
-Rota dedicada que lista todos os livros com estoque abaixo do nível mínimo configurado (padrão: 10 unidades)
-Funciona como um painel de alertas para o almoxarife saber o que precisa ser reposto antes que acabe
+- Rota dedicada que lista todos os livros com estoque **abaixo do nível mínimo** configurado (padrão: 10 unidades)
+- Funciona como um **painel de alertas** para o almoxarife saber o que precisa ser reposto antes que acabe
 
 <br/>
+
 <h2>🛠️ Stack Tecnológica</h2>
-CamadaTecnologiaBack-EndLaravel (PHP)Banco de DadosMySQLORMEloquent ORMAutenticaçãoLaravel SanctumPadrão de APIRESTful — Respostas em JSONEstilo de CódigoPSR-12 + Clean CodeTestes de RotaInsomnia / Postman
+
+| Camada | Tecnologia |
+|---|---|
+| Back-End | Laravel (PHP) |
+| Banco de Dados | MySQL |
+| ORM | Eloquent ORM |
+| Autenticação | Laravel Sanctum |
+| Padrão de API | RESTful — Respostas em JSON |
+| Estilo de Código | PSR-12 + Clean Code |
+| Testes de Rota | Insomnia / Postman |
+
 <br/>
+
 <h2>🗄️ Modelagem do Banco de Dados</h2>
 
-books
-├── id
-├── title
-├── isbn (unique)
-├── subject
-├── current_stock
-├── minimum_stock
-└── timestamps
-stock_movements
-├── id
-├── book_id (FK → books)
-├── type (entry | exit)
-├── quantity
-├── description
-├── user_id (FK → users)
-└── timestamps
-users
-├── id
-├── name
-├── email
-├── password
-├── role (almoxarife | coordenador)
-└── timestamps
+**`books`**
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id` | INT (PK) | Identificador único |
+| `title` | VARCHAR | Título do livro |
+| `isbn` | VARCHAR (unique) | Código ISBN |
+| `subject` | VARCHAR | Matéria / disciplina |
+| `current_stock` | INT | Saldo atual em estoque |
+| `minimum_stock` | INT | Nível mínimo de alerta |
+| `created_at` | TIMESTAMP | — |
+| `updated_at` | TIMESTAMP | — |
+
+**`stock_movements`**
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id` | INT (PK) | Identificador único |
+| `book_id` | INT (FK → books) | Livro movimentado |
+| `user_id` | INT (FK → users) | Usuário responsável |
+| `type` | ENUM | `entry` ou `exit` |
+| `quantity` | INT | Quantidade movimentada |
+| `description` | TEXT | Ex: "Turma A — Elétrica" |
+| `created_at` | TIMESTAMP | — |
+| `updated_at` | TIMESTAMP | — |
+
+**`users`**
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id` | INT (PK) | Identificador único |
+| `name` | VARCHAR | Nome do funcionário |
+| `email` | VARCHAR | E-mail de acesso |
+| `password` | VARCHAR | Senha (hash) |
+| `role` | ENUM | `almoxarife` ou `coordenador` |
+| `created_at` | TIMESTAMP | — |
+| `updated_at` | TIMESTAMP | — |
 
 <br/>
 
@@ -118,7 +150,8 @@ users
 - Laravel CLI
 
 <h3>Passo a passo</h3>
-bash
+
+```bash
 # 1. Clone o repositório
 git clone https://github.com/seu-usuario/senaistock.git
 cd senaistock
@@ -143,58 +176,74 @@ php artisan migrate --seed
 
 # 6. Inicie o servidor
 php artisan serve
+```
 
-A API estará disponível em http://localhost:8000/api
+> A API estará disponível em `http://localhost:8000/api`
 
 <br/>
+
 <h2>📁 Estrutura do Projeto</h2>
 
+```
 senaistock/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── AuthController.php
-│   │   │   ├── BookController.php
-│   │   │   └── StockController.php
-│   │   └── Requests/
-│   │       ├── StoreBookRequest.php
-│   │       ├── StockEntryRequest.php
-│   │       └── StockExitRequest.php
-│   ├── Models/
-│   │   ├── User.php
-│   │   ├── Book.php
-│   │   └── StockMovement.php
-│   └── Services/
-│       └── StockService.php
-├── database/
-│   ├── migrations/
-│   └── seeders/
-├── routes/
-│   └── api.php
-└── tests/
+|
++-- app/
+|   +-- Http/
+|   |   +-- Controllers/
+|   |   |   +-- AuthController.php
+|   |   |   +-- BookController.php
+|   |   |   \-- StockController.php
+|   |   \-- Requests/
+|   |       +-- StoreBookRequest.php
+|   |       +-- StockEntryRequest.php
+|   |       \-- StockExitRequest.php
+|   +-- Models/
+|   |   +-- User.php
+|   |   +-- Book.php
+|   |   \-- StockMovement.php
+|   \-- Services/
+|       \-- StockService.php
+|
++-- database/
+|   +-- migrations/
+|   \-- seeders/
+|
++-- routes/
+|   \-- api.php
+|
+\-- tests/
+```
 
 <br/>
+
 <h2>📋 Exemplos de Requisição</h2>
+
 <h3>Login</h3>
-json
+
+```json
 POST /api/login
 {
   "email": "almoxarife@senai.br",
   "password": "senha123"
 }
+```
 
 <h3>Registrar Entrada de Estoque</h3>
-json
+
+```json
 POST /api/stock/entry
 Authorization: Bearer {token}
+
 {
-"book_id": 3,
-"quantity": 50,
-"description": "Remessa de março — Editora Senai"
+  "book_id": 3,
+  "quantity": 50,
+  "description": "Remessa de março — Editora Senai"
 }
+```
 
 <h3>Registrar Saída de Estoque</h3>
-json
+
+```json
 POST /api/stock/exit
 Authorization: Bearer {token}
 
@@ -203,14 +252,19 @@ Authorization: Bearer {token}
   "quantity": 30,
   "description": "Turma A — Eletrotécnica"
 }
+```
+
 <h3>Resposta — Estoque Insuficiente</h3>
-json
+
+```json
 HTTP 422 Unprocessable Entity
+
 {
-"message": "Estoque insuficiente.",
-"available": 15,
-"requested": 30
+  "message": "Estoque insuficiente.",
+  "available": 15,
+  "requested": 30
 }
+```
 
 <br/>
 
@@ -222,12 +276,12 @@ HTTP 422 Unprocessable Entity
 |---|---|
 | *(Gabriel e Arthur)* | Back-End Developer |
 
-<br/>
 
 ---
 
 <div align="center">
 
+<p>Feito com ❤️ para o SENAI</p>
 
 <img src="https://img.shields.io/badge/status-em%20desenvolvimento-yellow?style=flat-square"/>
 <img src="https://img.shields.io/badge/vers%C3%A3o-1.0.0-blue?style=flat-square"/>
