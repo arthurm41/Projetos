@@ -1,277 +1,132 @@
-# Projetos
+📚 SenaiStock API
+Sistema de Controle Quantitativo de Livros Didáticos
 
-Sistema SenaiStock
-1. Objetivo do Versionamento
+O SenaiStock é uma API RESTful desenvolvida para solucionar a falta de controle de estoque de livros nas unidades do Senai. O sistema permite que o almoxarifado registre entradas e saídas de materiais, garantindo que nenhum instrutor seja pego de surpresa com o estoque zerado.
 
-O versionamento do projeto SenaiStock tem como finalidade controlar as alterações no código-fonte ao longo do desenvolvimento, permitindo:
+🛠️ Tecnologias Utilizadas
+Framework: Laravel 11 (PHP 8.2+)
 
-Histórico de mudanças
+Banco de Dados: MySQL
 
-Trabalho colaborativo em equipe
+ORM: Eloquent (Mapeamento Objeto-Relacional)
 
-Controle de versões estáveis
+Padronização: PSR (PHP Standard Recommendations) e Clean Code
 
-Facilidade de manutenção
+Documentação/Testes: Insomnia / Postman
 
-Possibilidade de rollback em caso de erros
+Funcionalidades Principais
+1. Autenticação e Segurança
+Apenas usuários autenticados com perfis de Almoxarife ou Coordenador podem realizar alterações no saldo.
 
-Será utilizado o Git como sistema de controle de versão e o GitHub como repositório remoto.
+Tecnologia: Laravel Sanctum ou JWT.
 
-2. Ferramentas Utilizadas
+2. Catálogo de Títulos
+Gerenciamento completo dos livros disponíveis na unidade.
 
-Git (controle de versão local)
+Campos: Título, ISBN (único) e Matéria.
 
-GitHub (armazenamento remoto)
+3. Gestão de Fluxo (Entrada e Saída)
+O coração do sistema é o controle do saldo atualizado:
 
-GitHub Desktop ou Terminal (opcional)
+Abastecimento: Adiciona exemplares ao saldo ao receber remessas da editora.
 
-Laravel (framework do projeto)
+Baixa Manual: Registra a retirada de livros para turmas específicas.
 
-3. Estratégia de Versionamento
+⚠️ Regra de Negócio: O sistema impede a saída se a quantidade solicitada for superior ao saldo disponível (Erro: Estoque Insuficiente).
 
-Será adotado o padrão Semantic Versioning (SemVer):
+4. Alerta de Reposição (Monitoramento)
+Uma rota estratégica que lista automaticamente todos os títulos que possuem menos de 10 unidades em estoque, facilitando o planejamento de novos pedidos.
 
-Formato:
+Método,Endpoint,Descrição
+POST,/login,Autenticação de usuário e geração de token.
+GET,/books,Lista todos os livros cadastrados.
+POST,/books,Cadastra um novo título no catálogo.
+POST,/stock/in,Registra a entrada de novas caixas (Soma saldo).
+POST,/stock/out,Registra a retirada para sala de aula (Subtrai saldo).
+GET,/stock/low-inventory,Lista livros com saldo abaixo do nível mínimo.
 
-MAJOR.MINOR.PATCH
+O Gemini disse
+Essa é uma excelente iniciativa! O SenaiStock resolve um problema clássico de logística escolar com uma solução elegante de software. Para o seu repositório no GitHub, o ideal é que o README.md atue como o "cartão de visitas" e o manual técnico ao mesmo tempo.
 
-Exemplo:
+Aqui está uma proposta de documentação limpa, didática e profissional para o seu projeto:
 
-1.0.0
+📚 SenaiStock API
+Sistema de Controle Quantitativo de Livros Didáticos
 
-Significados:
+O SenaiStock é uma API RESTful desenvolvida para solucionar a falta de controle de estoque de livros nas unidades do Senai. O sistema permite que o almoxarifado registre entradas e saídas de materiais, garantindo que nenhum instrutor seja pego de surpresa com o estoque zerado.
 
-MAJOR → Mudanças grandes ou incompatíveis
+🛠️ Tecnologias Utilizadas
+Framework: Laravel 11 (PHP 8.2+)
 
-MINOR → Novas funcionalidades compatíveis
+Banco de Dados: MySQL
 
-PATCH → Correções de bugs
+ORM: Eloquent (Mapeamento Objeto-Relacional)
 
-4. Estrutura de Branches
+Padronização: PSR (PHP Standard Recommendations) e Clean Code
 
-O projeto seguirá uma estratégia baseada no Git Flow simplificado.
+Documentação/Testes: Insomnia / Postman
 
-Branches principais
-main
+🚀 Funcionalidades Principais
+1. Autenticação e Segurança
+Apenas usuários autenticados com perfis de Almoxarife ou Coordenador podem realizar alterações no saldo.
 
-Contém a versão estável do sistema.
+Tecnologia: Laravel Sanctum ou JWT.
 
-Apenas código pronto para produção.
+2. Catálogo de Títulos
+Gerenciamento completo dos livros disponíveis na unidade.
 
-develop
+Campos: Título, ISBN (único) e Matéria.
 
-Contém a versão em desenvolvimento.
+3. Gestão de Fluxo (Entrada e Saída)
+O coração do sistema é o controle do saldo atualizado:
 
-Integra funcionalidades antes de ir para main.
+Abastecimento: Adiciona exemplares ao saldo ao receber remessas da editora.
 
-Branches auxiliares
-feature/*
+Baixa Manual: Registra a retirada de livros para turmas específicas.
 
-Desenvolvimento de novas funcionalidades.
+⚠️ Regra de Negócio: O sistema impede a saída se a quantidade solicitada for superior ao saldo disponível (Erro: Estoque Insuficiente).
 
-Exemplos:
+4. Alerta de Reposição (Monitoramento)
+Uma rota estratégica que lista automaticamente todos os títulos que possuem menos de 10 unidades em estoque, facilitando o planejamento de novos pedidos.
 
-feature/autenticacao
-feature/cadastro-livros
-feature/controle-estoque
-feature/monitoramento-estoque
-bugfix/*
+🛣️ Endpoints da API (Planejamento)
+Método	Endpoint	Descrição
+POST	/login	Autenticação de usuário e geração de token.
+GET	/books	Lista todos os livros cadastrados.
+POST	/books	Cadastra um novo título no catálogo.
+POST	/stock/in	Registra a entrada de novas caixas (Soma saldo).
+POST	/stock/out	Registra a retirada para sala de aula (Subtrai saldo).
+GET	/stock/low-inventory	Lista livros com saldo abaixo do nível mínimo.
 
-Correções de erros identificados.
+🏗️ Estrutura de Banco de Dados (Sugestão Eloquent)
+O projeto utilizará as seguintes migrações principais:
 
-Exemplo:
+Users: id, name, email, password, role (admin/staff).
 
-bugfix/erro-validacao-estoque
-hotfix/*
+Books: id, title, isbn, subject, current_balance.
 
-Correções urgentes em produção.
+Transactions: id, book_id, user_id, type (in/out), quantity, observation.
 
-Exemplo:
+⚙️ Como executar o projeto
+Clone o repositório:
 
-hotfix/correcao-login
-5. Fluxo de Trabalho
-Passo a Passo
+Bash
+git clone https://github.com/seu-usuario/senai-stock.git
+Instale as dependências:
 
-Clonar repositório:
+Bash
+composer install
+Configure o .env:
+Configure suas credenciais do MySQL.
 
-git clone https://github.com/seu-usuario/senaistock.git
+Rode as migrações e o servidor:
 
-Criar nova branch de funcionalidade:
+Bash
+php artisan migrate
+php artisan serve
 
-git checkout -b feature/nome-da-funcionalidade
+🎯 Versionamento Semântico
+Este projeto segue o padrão de versionamento:
 
-Desenvolver código.
+v1.0.0: Lançamento inicial com funcionalidades essenciais de CRUD e controle de saldo.
 
-Adicionar alterações:
-
-git add .
-
-Criar commit:
-
-git commit -m "feat: adiciona cadastro de livros"
-
-Enviar para o GitHub:
-
-git push origin feature/nome-da-funcionalidade
-
-Abrir Pull Request para branch develop.
-
-6. Padrão de Commits (Conventional Commits)
-
-Será utilizado o padrão Conventional Commits para manter organização.
-
-Formato:
-
-tipo: descrição
-
-Tipos:
-
-feat → Nova funcionalidade
-
-fix → Correção de bug
-
-docs → Documentação
-
-style → Formatação
-
-refactor → Refatoração
-
-test → Testes
-
-chore → Tarefas internas
-
-Exemplos de Commits
-feat: cria sistema de autenticação
-feat: adiciona cadastro de livros
-feat: implementa entrada de estoque
-feat: implementa saída de estoque
-fix: corrige validação de estoque insuficiente
-docs: adiciona documentação da API
-refactor: melhora estrutura dos controllers
-7. Versionamento Inicial do Projeto
-Versão 0.1.0 — Configuração Inicial
-
-Criação do projeto Laravel
-
-Configuração do banco MySQL
-
-Estrutura básica da API
-
-Configuração do Git
-
-Versão 0.2.0 — Autenticação
-
-Sistema de login
-
-Proteção de rotas
-
-Tokens de autenticação
-
-Versão 0.3.0 — Cadastro de Livros
-
-CRUD de livros
-
-Model e Migration
-
-Versão 0.4.0 — Controle de Estoque
-
-Entrada de livros
-
-Saída de livros
-
-Validação de saldo
-
-Versão 0.5.0 — Monitoramento
-
-Listagem de estoque baixo
-
-Consulta de saldo
-
-Versão 1.0.0 — Primeira Versão Estável
-
-Sistema completo funcionando
-
-Testes realizados
-
-Documentação finalizada
-
-8. Tags de Versão
-
-As versões estáveis serão marcadas com tags no Git.
-
-Exemplo:
-
-git tag -a v1.0.0 -m "Versão estável inicial"
-git push origin v1.0.0
-9. Boas Práticas de Versionamento
-
-Commits pequenos e frequentes
-
-Mensagens claras e descritivas
-
-Não enviar código quebrado para main
-
-Sempre usar Pull Request
-
-Revisão de código antes do merge
-
-Atualizar branch antes de enviar alterações
-
-10. Estrutura do Repositório
-senaistock/
-│── app/
-│── routes/
-│── database/
-│── config/
-│── tests/
-│── docs/
-│── README.md
-│── .env.example
-│── composer.json
-11. README do Projeto (Resumo)
-
-O repositório deverá conter:
-
-Descrição do sistema
-
-Tecnologias utilizadas
-
-Como instalar
-
-Como executar
-
-Rotas da API
-
-Autores
-
-12. Controle de Entregas (Milestones)
-
-Milestones sugeridas no GitHub:
-
-Milestone 1 — Estrutura inicial
-
-Milestone 2 — Autenticação
-
-Milestone 3 — Cadastro de livros
-
-Milestone 4 — Controle de estoque
-
-Milestone 5 — Monitoramento
-
-Milestone 6 — Versão final
-
-13. Responsabilidades da Equipe
-
-Cada integrante deverá:
-
-Criar branch própria
-
-Realizar commits organizados
-
-Documentar funcionalidades
-
-Participar das revisões de código
-
-14. Conclusão
-
-O versionamento utilizando Git e GitHub garantirá organização, rastreabilidade e qualidade no desenvolvimento do SenaiStock, permitindo evolução segura do sistema e colaboração eficiente entre os membros da equipe.
