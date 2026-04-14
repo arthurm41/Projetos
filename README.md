@@ -21,7 +21,7 @@
 
 <h2>🎯 Sobre o Projeto</h2>
 
-O **SenaiStock** surgiu de um problema silencioso: livros chegavam e saiam em grandes remessas, eram guargados de forma desorganizada e sem controle.
+O **SenaiStock** surgiu de um problema silencioso: livros chegavam e saiam em grandes remessas, eram guardados de forma desorganizada e sem controle.  
 Este sistema resolve isso de forma direta e confiável — registrando cada **entrada** vinda da editora e cada **saída** para as turmas, mantendo o saldo sempre atualizado em tempo real.
 
 > **Missão:** Nunca mais descobrir que o estoque acabou tarde demais.
@@ -53,13 +53,13 @@ Este sistema resolve isso de forma direta e confiável — registrando cada **en
 <h3>📤 4. Saída de Estoque (Baixa Manual)</h3>
 
 - Registra a retirada de livros para as turmas
-- O usuário informa o livro, a quantidade e o destino (ex: *"Turma A — Elétrica"*)
-- **Regra de negócio crítica:** A operação é **bloqueada** automaticamente se a quantidade solicitada for maior do que o saldo disponível, retornando erro `422 – Estoque Insuficiente`
+- O usuário informa o livro, a quantidade e o destino
+- Operação bloqueada automaticamente se não houver saldo suficiente (`422 – Estoque Insuficiente`)
 
 <h3>🔔 5. Monitoramento de Saldo Baixo</h3>
 
-- Rota dedicada que lista todos os livros com estoque **abaixo do nível mínimo** configurado (padrão: 10 unidades)
-- Funciona como um **painel de alertas** para o almoxarife saber o que precisa ser reposto antes que acabe
+- Lista livros com estoque abaixo do mínimo configurado
+- Funciona como alerta para reposição
 
 <br/>
 
@@ -71,211 +71,103 @@ Este sistema resolve isso de forma direta e confiável — registrando cada **en
 | Banco de Dados | MySQL |
 | ORM | Eloquent ORM |
 | Autenticação | Laravel Sanctum |
-| Padrão de API | RESTful — Respostas em JSON |
-| Estilo de Código | PSR-12 + Clean Code |
-| Testes de Rota | Insomnia / Postman |
+| Padrão de API | RESTful |
+| Testes | Insomnia / Postman |
 
 <br/>
 
 <h2>🗄️ Modelagem do Banco de Dados</h2>
 
 **`books`**
+
 | Coluna | Tipo | Descrição |
 |---|---|---|
-| `id` | INT (PK) | Identificador único |
-| `title` | VARCHAR | Título do livro |
-| `isbn` | VARCHAR (unique) | Código ISBN |
-| `subject` | VARCHAR | Matéria / disciplina |
-| `current_stock` | INT | Saldo atual em estoque |
-| `minimum_stock` | INT | Nível mínimo de alerta |
-| `created_at` | TIMESTAMP | — |
-| `updated_at` | TIMESTAMP | — |
+| id | INT | Identificador |
+| title | VARCHAR | Título |
+| isbn | VARCHAR | ISBN |
+| subject | VARCHAR | Matéria |
+| current_stock | INT | Estoque |
+| minimum_stock | INT | Mínimo |
 
 **`stock_movements`**
+
 | Coluna | Tipo | Descrição |
 |---|---|---|
-| `id` | INT (PK) | Identificador único |
-| `book_id` | INT (FK → books) | Livro movimentado |
-| `user_id` | INT (FK → users) | Usuário responsável |
-| `type` | ENUM | `entry` ou `exit` |
-| `quantity` | INT | Quantidade movimentada |
-| `description` | TEXT | Ex: "Turma A — Elétrica" |
-| `created_at` | TIMESTAMP | — |
-| `updated_at` | TIMESTAMP | — |
+| id | INT | Identificador |
+| book_id | INT | Livro |
+| user_id | INT | Usuário |
+| type | ENUM | entry/exit |
+| quantity | INT | Quantidade |
+| description | TEXT | Descrição |
 
 **`users`**
+
 | Coluna | Tipo | Descrição |
 |---|---|---|
-| `id` | INT (PK) | Identificador único |
-| `name` | VARCHAR | Nome do funcionário |
-| `email` | VARCHAR | E-mail de acesso |
-| `password` | VARCHAR | Senha (hash) |
-| `role` | ENUM | `almoxarife` ou `coordenador` |
-| `created_at` | TIMESTAMP | — |
-| `updated_at` | TIMESTAMP | — |
+| id | INT | Identificador |
+| name | VARCHAR | Nome |
+| email | VARCHAR | Email |
+| password | VARCHAR | Senha |
+| role | ENUM | Perfil |
 
 <br/>
 
 <h2>🌐 Rotas da API</h2>
 
-<h3>🔓 Públicas</h3>
+### 🔓 Públicas
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/api/login` | Autenticação do usuário |
+| Método | Rota |
+|---|---|
+| POST | /api/login |
 
-<h3>🔒 Protegidas (requer token)</h3>
+### 🔒 Protegidas
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/api/logout` | Encerra a sessão |
-| `GET` | `/api/books` | Lista todos os livros |
-| `POST` | `/api/books` | Cadastra um novo livro |
-| `GET` | `/api/books/{id}` | Exibe detalhes de um livro |
-| `PUT` | `/api/books/{id}` | Atualiza dados de um livro |
-| `DELETE` | `/api/books/{id}` | Remove um livro do catálogo |
-| `POST` | `/api/stock/entry` | Registra entrada de estoque |
-| `POST` | `/api/stock/exit` | Registra saída de estoque |
-| `GET` | `/api/stock/low` | Lista livros com estoque baixo |
-
-<br/>
-
-<h2>🚀 Como Executar o Projeto</h2>
-
-<h3>Pré-requisitos</h3>
-
-- PHP >= 8.2
-- Composer
-- MySQL
-- Laravel CLI
-
-<h3>Passo a passo</h3>
-
-```bash
-# 1. Clone o repositório
-git clone https://github.com/seu-usuario/senaistock.git
-cd senaistock
-
-# 2. Instale as dependências
-composer install
-
-# 3. Configure o ambiente
-cp .env.example .env
-php artisan key:generate
-
-# 4. Configure o banco de dados no .env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=senaistock
-DB_USERNAME=root
-DB_PASSWORD=sua_senha
-
-# 5. Rode as migrations e seeders
-php artisan migrate --seed
-
-# 6. Inicie o servidor
-php artisan serve
-```
-
-> A API estará disponível em `http://localhost:8000/api`
+| Método | Rota |
+|---|---|
+| POST | /api/logout |
+| GET | /api/books |
+| POST | /api/books |
+| GET | /api/books/{id} |
+| PUT | /api/books/{id} |
+| DELETE | /api/books/{id} |
+| POST | /api/stock/entry |
+| POST | /api/stock/exit |
+| GET | /api/stock/low |
 
 <br/>
 
-<h2>📁 Estrutura do Projeto</h2>
+<h2>📌 Organização do Projeto</h2>
 
-```
-senaistock/
-|
-+-- app/
-|   +-- Http/
-|   |   +-- Controllers/
-|   |   |   +-- AuthController.php
-|   |   |   +-- BookController.php
-|   |   |   \-- StockController.php
-|   |   \-- Requests/
-|   |       +-- StoreBookRequest.php
-|   |       +-- StockEntryRequest.php
-|   |       \-- StockExitRequest.php
-|   +-- Models/
-|   |   +-- User.php
-|   |   +-- Book.php
-|   |   \-- StockMovement.php
-|   \-- Services/
-|       \-- StockService.php
-|
-+-- database/
-|   +-- migrations/
-|   \-- seeders/
-|
-+-- routes/
-|   \-- api.php
-|
-\-- tests/
-```
+### 📋 Levantamento de Requisitos
+Etapa inicial onde foram definidas as necessidades do sistema, como controle de estoque, autenticação e regras de negócio.
+
+### 🎨 Prototipagem
+Desenvolvimento das telas e fluxos no Figma para visualizar o sistema antes da implementação.
+
+### 🔄 Metodologias Ágeis
+Uso de Scrum com organização em tarefas, backlog e acompanhamento por sprints.
+
+### 🗂️ Versionamento
+Utilização do Git para controle de versões e trabalho em equipe.
+
+### 📝 Documentação
+Registro das rotas, estrutura e funcionamento da API para facilitar manutenção e uso.
 
 <br/>
 
-<h2>📋 Exemplos de Requisição</h2>
+<h2>🔗 Links do Projeto</h2>
 
-<h3>Login</h3>
-
-```json
-POST /api/login
-{
-  "email": "almoxarife@senai.br",
-  "password": "senha123"
-}
-```
-
-<h3>Registrar Entrada de Estoque</h3>
-
-```json
-POST /api/stock/entry
-Authorization: Bearer {token}
-
-{
-  "book_id": 3,
-  "quantity": 50,
-  "description": "Remessa de março — Editora Senai"
-}
-```
-
-<h3>Registrar Saída de Estoque</h3>
-
-```json
-POST /api/stock/exit
-Authorization: Bearer {token}
-
-{
-  "book_id": 3,
-  "quantity": 30,
-  "description": "Turma A — Eletrotécnica"
-}
-```
-
-<h3>Resposta — Estoque Insuficiente</h3>
-
-```json
-HTTP 422 Unprocessable Entity
-
-{
-  "message": "Estoque insuficiente.",
-  "available": 15,
-  "requested": 30
-}
-```
+- 🎨 Figma: https://www.figma.com/design/KPWxNFxbknn0oY8n5VHYfa/SenaiStock?node-id=4-17&t=KRryyOwFlSXFIZDr-1  
+- 📋 Trello: https://trello.com/invite/b/699f396ecebd97e020ea17ec/ATTIc41c0d194b39adedb1125257fabc90907CF3F411/senaistock-scrum  
 
 <br/>
 
 <h2>👥 Equipe</h2>
 
-> Projeto desenvolvido como atividade prática do curso técnico — SENAI.
-
 | Nome | Função |
 |---|---|
-| *(Gabriel e Arthur)* | Back-End Developer |
-
+| Gabriel | Back-End Developer |
+| Arthur | Back-End Developer |
 
 ---
 
