@@ -1,0 +1,359 @@
+{
+  "info": {
+    "_postman_id": "senaistock-api",
+    "name": "SenaiStock API",
+    "description": "API para controle de estoque de livros didáticos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Livros",
+      "item": [
+        {
+          "name": "Listar Todos os Livros",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/books",
+              "host": ["{{base_url}}"],
+              "path": ["api", "books"]
+            }
+          }
+        },
+        {
+          "name": "Listar Livros com Estoque Baixo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/books/low-stock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "books", "low-stock"]
+            }
+          }
+        },
+        {
+          "name": "Ver Livro Específico",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/books/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "books", "1"]
+            }
+          }
+        },
+        {
+          "name": "Criar Livro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject_id\": 1,\n  \"title\": \"Eletrônica Digital\",\n  \"isbn\": \"978-8535234567\",\n  \"author\": \"João Silva\",\n  \"publisher\": \"Editora Tech\",\n  \"edition\": \"1ª\",\n  \"current_stock\": 50,\n  \"minimum_stock\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/books",
+              "host": ["{{base_url}}"],
+              "path": ["api", "books"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Livro",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"minimum_stock\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/books/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "books", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Entradas de Estoque",
+      "item": [
+        {
+          "name": "Listar Entradas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stock-entries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stock-entries"]
+            }
+          }
+        },
+        {
+          "name": "Ver Entrada Específica",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stock-entries/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stock-entries", "1"]
+            }
+          }
+        },
+        {
+          "name": "Registrar Entrada de Estoque",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"book_id\": 1,\n  \"quantity\": 30,\n  \"notes\": \"Chegou nova remessa da editora\",\n  \"received_at\": \"2026-04-14 10:30:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stock-entries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stock-entries"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Retiradas de Estoque",
+      "item": [
+        {
+          "name": "Listar Retiradas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stock-withdrawals",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stock-withdrawals"]
+            }
+          }
+        },
+        {
+          "name": "Ver Retirada Específica",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stock-withdrawals/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stock-withdrawals", "1"]
+            }
+          }
+        },
+        {
+          "name": "Registrar Retirada de Estoque",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"book_id\": 1,\n  \"quantity\": 20,\n  \"class_group\": \"Turma A - Eletrônica\",\n  \"reason\": \"Aula prática de análise de circuitos\",\n  \"withdrawn_at\": \"2026-04-14 08:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stock-withdrawals",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stock-withdrawals"]
+            }
+          }
+        },
+        {
+          "name": "Retirada com Estoque Insuficiente (TESTE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"book_id\": 1,\n  \"quantity\": 1000,\n  \"class_group\": \"Turma B\",\n  \"reason\": \"Teste de validação\",\n  \"withdrawn_at\": \"2026-04-14 08:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stock-withdrawals",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stock-withdrawals"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
