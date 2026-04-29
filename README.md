@@ -46,12 +46,12 @@ Utilização do Git para controle de versões e trabalho em equipe.
 Registro das rotas, estrutura e funcionamento da API para facilitar manutenção e uso.
 
 <br/>
-
 <h2>🔗 Links do Projeto</h2>
 
-- 🎨 Figma: https://www.figma.com/design/KPWxNFxbknn0oY8n5VHYfa/SenaiStock?node-id=4-17&t=KRryyOwFlSXFIZDr-1  
-- 📋 Trello: https://trello.com/invite/b/699f396ecebd97e020ea17ec/ATTIc41c0d194b39adedb1125257fabc90907CF3F411/senaistock-scrum  
-
+<p>
+🎨 <a href="https://www.figma.com/design/KPWxNFxbknn0oY8n5VHYfa/SenaiStock?node-id=4-17&t=KRryyOwFlSXFIZDr-1">Figma</a><br>
+📋 <a href="https://trello.com/invite/b/699f396ecebd97e020ea17ec/ATTIc41c0d194b39adedb1125257fabc90907CF3F411/senaistock-scrum">Trello</a>
+</p>
 <br/>
 
 <h2>👥 Equipe</h2>
