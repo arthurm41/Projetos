@@ -1,0 +1,459 @@
+@font-face {
+    font-family: 'Inter', sans-serif;
+}
+
+:root {
+    --primary: #c8102e;
+    --primary-dark: #9b0f24;
+    --primary-light: #ff5c66;
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --surface-soft: #f3f4f6;
+    --text: #111827;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+}
+
+html, body {
+    min-height: 100%;
+    background: radial-gradient(circle at top left, rgba(200, 16, 46, 0.08), transparent 35%), var(--background) !important;
+    color: var(--text) !important;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body, div, span, p, h1, h2, h3, h4, h5, h6, li {
+    color: var(--text) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--primary) !important;
+    font-weight: 700 !important;
+}
+
+a {
+    color: var(--primary) !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+}
+
+a:hover {
+    color: var(--primary-dark) !important;
+    text-decoration: underline !important;
+}
+
+button, [role="button"], input[type="button"], input[type="submit"] {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    padding: 0.9rem 1.7rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 18px 40px rgba(200, 16, 46, 0.12) !important;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+button:hover, [role="button"]:hover, input[type="button"]:hover, input[type="submit"]:hover {
+    background-color: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+}
+
+button:active, [role="button"]:active, input[type="button"]:active, input[type="submit"]:active {
+    transform: translateY(0) !important;
+}
+
+input, textarea, select {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 1rem !important;
+    padding: 0.95rem 1rem !important;
+    font-family: inherit !important;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 6px rgba(200, 16, 46, 0.1) !important;
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--muted) !important;
+}
+
+.fi-navbar {
+    background-color: var(--surface) !important;
+    border-bottom: 1px solid var(--border) !important;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.06) !important;
+}
+
+.fi-sidebar {
+    background-color: var(--surface) !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+.fi-sidebar-nav-item {
+    color: var(--text) !important;
+    border-radius: 1rem !important;
+    padding: 0.75rem 0.95rem !important;
+}
+
+.fi-sidebar-nav-item.active {
+    background-color: rgba(200, 16, 46, 0.08) !important;
+    color: var(--primary) !important;
+    border-left: 4px solid var(--primary) !important;
+}
+
+.fi-sidebar-nav-item:hover {
+    background-color: rgba(200, 16, 46, 0.05) !important;
+}
+
+.fi-card {
+    background-color: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 1.25rem !important;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.06) !important;
+    padding: 1.6rem !important;
+}
+
+.fi-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 32px 70px rgba(15, 23, 42, 0.08) !important;
+}
+
+.badge {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    border-radius: 999px !important;
+}
+
+table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+}
+
+thead {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+}
+
+thead th {
+    padding: 1rem 1.2rem !important;
+    font-weight: 700 !important;
+    text-align: left !important;
+}
+
+tbody tr:nth-child(even) {
+    background-color: var(--surface-soft) !important;
+}
+
+tbody tr:hover {
+    background-color: rgba(200, 16, 46, 0.05) !important;
+}
+
+tbody td {
+    padding: 1rem 1.2rem !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+nav a, .nav-link {
+    color: var(--text) !important;
+}
+
+nav a:hover, .nav-link:hover {
+    color: var(--primary) !important;
+}
+
+.fi-brand {
+    background-color: transparent !important;
+    padding: 1.25rem 1.5rem !important;
+}
+
+.fi-brand-logo {
+    display: none !important;
+}
+
+.fi-logo {
+    display: none !important;
+}
+
+.fi-brand-name {
+    color: var(--primary) !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+}
+
+.alert, .notification {
+    border-radius: 1rem !important;
+    padding: 1rem 1.25rem !important;
+}
+
+.alert-info, .notification-info {
+    background-color: rgba(200, 16, 46, 0.08) !important;
+    border-left: 4px solid var(--primary) !important;
+    color: var(--text) !important;
+}
+
+.dark, [data-mode="dark"] {
+    background-color: #111827 !important;
+    color: #f9fafb !important;
+}
+
+/* Estilos melhorados para botões com máxima legibilidade */
+.fi-btn, .fi-action-btn, button.fi-btn, button.fi-action-btn {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    border: 2px solid var(--primary) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.4 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.15) !important;
+    transition: all 0.2s ease !important;
+    min-height: 2.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+}
+
+.fi-btn:hover, .fi-action-btn:hover, button.fi-btn:hover, button.fi-action-btn:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(200, 16, 46, 0.2) !important;
+}
+
+.fi-btn:active, .fi-action-btn:active, button.fi-btn:active, button.fi-action-btn:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(200, 16, 46, 0.15) !important;
+}
+
+/* Texto dos botões sempre branco e legível */
+.fi-btn *, .fi-action-btn *, button.fi-btn *, button.fi-action-btn * {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ícones dos botões */
+.fi-btn svg, .fi-action-btn svg, button.fi-btn svg, button.fi-action-btn svg {
+    color: #ffffff !important;
+    width: 1.1em !important;
+    height: 1.1em !important;
+    flex-shrink: 0 !important;
+}
+
+/* Botões específicos do Filament */
+.fi-page-actions .fi-action-btn,
+.fi-table-actions .fi-action-btn,
+.fi-form-actions .fi-action-btn {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    border: 2px solid var(--primary) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.15) !important;
+    min-height: 2.5rem !important;
+}
+
+/* Hover states */
+.fi-page-actions .fi-action-btn:hover,
+.fi-table-actions .fi-action-btn:hover,
+.fi-form-actions .fi-action-btn:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(200, 16, 46, 0.2) !important;
+}
+
+/* Botões de ação em tabelas */
+.fi-table-actions button,
+.fi-table-actions .fi-action-btn,
+.fi-table-actions .fi-btn {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    border: 2px solid var(--primary) !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(200, 16, 46, 0.15) !important;
+    min-height: 2rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.375rem !important;
+}
+
+.fi-table-actions button:hover,
+.fi-table-actions .fi-action-btn:hover,
+.fi-table-actions .fi-btn:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.2) !important;
+}
+
+/* Texto dos botões de tabela */
+.fi-table-actions button *,
+.fi-table-actions .fi-action-btn *,
+.fi-table-actions .fi-btn * {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    font-size: 0.875rem !important;
+}
+
+/* Ícones dos botões de tabela */
+.fi-table-actions button svg,
+.fi-table-actions .fi-action-btn svg,
+.fi-table-actions .fi-btn svg {
+    color: #ffffff !important;
+    width: 1em !important;
+    height: 1em !important;
+    flex-shrink: 0 !important;
+}
+
+/* Estilos globais para TODOS os botões do Filament */
+button[class*="fi-"],
+a[class*="fi-"][role="button"],
+[class*="fi-btn"],
+[class*="fi-action"] {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    border: 2px solid var(--primary) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.15) !important;
+    transition: all 0.2s ease !important;
+    min-height: 2.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    text-decoration: none !important;
+}
+
+button[class*="fi-"]:hover,
+a[class*="fi-"][role="button"]:hover,
+[class*="fi-btn"]:hover,
+[class*="fi-action"]:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(200, 16, 46, 0.2) !important;
+    text-decoration: none !important;
+}
+
+/* Forçar cor branca em todos os elementos internos dos botões */
+button[class*="fi-"] *,
+a[class*="fi-"][role="button"] *,
+[class*="fi-btn"] *,
+[class*="fi-action"] * {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Ícones específicos */
+button[class*="fi-"] svg,
+a[class*="fi-"][role="button"] svg,
+[class*="fi-btn"] svg,
+[class*="fi-action"] svg {
+    color: #ffffff !important;
+    width: 1.1em !important;
+    height: 1.1em !important;
+    flex-shrink: 0 !important;
+}
+
+/* SUPER FORÇADO: Estilos para QUALQUER botão do Filament */
+* button[class*="fi-"],
+* a[class*="fi-"][role="button"],
+* [class*="fi-btn"],
+* [class*="fi-action"],
+button.fi-btn,
+button.fi-action-btn,
+.fi-btn,
+.fi-action-btn {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    border: 2px solid var(--primary) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.15) !important;
+    transition: all 0.2s ease !important;
+    min-height: 2.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    text-decoration: none !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+* button[class*="fi-"]:hover,
+* a[class*="fi-"][role="button"]:hover,
+* [class*="fi-btn"]:hover,
+* [class*="fi-action"]:hover,
+button.fi-btn:hover,
+button.fi-action-btn:hover,
+.fi-btn:hover,
+.fi-action-btn:hover {
+    background: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(200, 16, 46, 0.2) !important;
+    text-decoration: none !important;
+}
+
+/* TEXTO SUPER FORÇADO */
+* button[class*="fi-"] *,
+* a[class*="fi-"][role="button"] *,
+* [class*="fi-btn"] *,
+* [class*="fi-action"] *,
+button.fi-btn *,
+button.fi-action-btn *,
+.fi-btn *,
+.fi-action-btn * {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+/* ÍCONES SUPER FORÇADOS */
+* button[class*="fi-"] svg,
+* a[class*="fi-"][role="button"] svg,
+* [class*="fi-btn"] svg,
+* [class*="fi-action"] svg,
+button.fi-btn svg,
+button.fi-action-btn svg,
+.fi-btn svg,
+.fi-action-btn svg {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+    width: 1.1em !important;
+    height: 1.1em !important;
+    flex-shrink: 0 !important;
+}

@@ -6,6 +6,8 @@ use App\Models\StockEntry;
 use App\Models\StockWithdrawal;
 use App\Observers\StockEntryObserver;
 use App\Observers\StockWithdrawalObserver;
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,5 +27,9 @@ class AppServiceProvider extends ServiceProvider
     {
         StockEntry::observe(StockEntryObserver::class);
         StockWithdrawal::observe(StockWithdrawalObserver::class);
+        
+        FilamentAsset::register([
+            Css::make('custom-colors', asset('css/custom-colors.css')),
+        ]);
     }
 }

@@ -11,26 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('stock_entries', function (Blueprint $table) {
-            $table->foreignId('book_id')->constrained('books');
-            $table->foreignId('user_id')->constrained('users');
-            $table->integer('quantity');
-            $table->integer('stock_before');
-            $table->integer('stock_after');
-            $table->text('notes')->nullable();
-            $table->datetime('received_at');
-        });
+        if (!Schema::hasColumn('stock_entries', 'book_id')) {
+            Schema::table('stock_entries', function (Blueprint $table) {
+                $table->foreignId('book_id')->constrained('books');
+                $table->foreignId('user_id')->constrained('users');
+                $table->integer('quantity');
+                $table->integer('stock_before');
+                $table->integer('stock_after');
+                $table->text('notes')->nullable();
+                $table->datetime('received_at');
+            });
+        }
 
-        Schema::table('stock_withdrawals', function (Blueprint $table) {
-            $table->foreignId('book_id')->constrained('books');
-            $table->foreignId('user_id')->constrained('users');
-            $table->integer('quantity');
-            $table->integer('stock_before');
-            $table->integer('stock_after');
-            $table->string('class_group', 100);
-            $table->text('reason');
-            $table->datetime('withdrawn_at');
-        });
+        if (!Schema::hasColumn('stock_withdrawals', 'book_id')) {
+            Schema::table('stock_withdrawals', function (Blueprint $table) {
+                $table->foreignId('book_id')->constrained('books');
+                $table->foreignId('user_id')->constrained('users');
+                $table->integer('quantity');
+                $table->integer('stock_before');
+                $table->integer('stock_after');
+                $table->string('class_group', 100);
+                $table->text('reason');
+                $table->datetime('withdrawn_at');
+            });
+        }
     }
 
     /**
