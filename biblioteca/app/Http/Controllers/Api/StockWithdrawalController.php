@@ -2,65 +2,55 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\StoreStockWithdrawalRequest;
+use App\Http\Resources\StockWithdrawalResource;
+use App\Models\Book;
 use App\Models\StockWithdrawal;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class StockWithdrawalController extends ApiController
 {
     public function index(): JsonResponse
     {
-        $withdrawals = StockWithdrawal::with(['book', 'user'])
+        $withdrawals = StockWithdrawal::with(['book.subject', 'user'])
             ->latest()
-            ->get();
-        
-        return $this->success($withdrawals);
+            ->paginate(15);
+
+        return $this->paginate($withdrawals);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreStockWithdrawalRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'book_id' => 'required|exists:books,id',
-            'quantity' => 'required|integer|min:1',
-            'class_group' => 'required|string|max:100',
-            'reason' => 'required|string',
-            'withdrawn_at' => 'required|date_format:Y-m-d H:i:s',
-        ]);
+        $data = $request->validated();
 
-        try {
-            $book = \App\Models\Book::findOrFail($validated['book_id']);
-            
-            // Validar estoque insuficiente
-            if ($book->current_stock < $validated['quantity']) {
-                return $this->error(
-                    "Estoque insuficiente. Disponível: {$book->current_stock} | Solicitado: {$validated['quantity']}",
-                    422
-                );
-            }
+        $book = Book::findOrFail($data['book_id']);
 
-            $withdrawal = StockWithdrawal::create([
-                'book_id' => $validated['book_id'],
-                'user_id' => auth()->id(),
-                'quantity' => $validated['quantity'],
-                'stock_before' => $book->current_stock,
-                'stock_after' => $book->current_stock - $validated['quantity'],
-                'class_group' => $validated['class_group'],
-                'reason' => $validated['reason'],
-                'withdrawn_at' => $validated['withdrawn_at'],
-            ]);
-
-            return $this->success(
-                $withdrawal->load(['book', 'user']),
-                'Retirada de estoque registrada com sucesso',
-                201
+        if ($data['quantity'] > $book->current_stock) {
+            return $this->error(
+                "Estoque insuficiente. Saldo atual: {$book->current_stock} unidade(s). Solicitado: {$data['quantity']}.",
+                422
             );
-        } catch (\Exception $e) {
-            return $this->error('Erro ao registrar retirada: ' . $e->getMessage(), 422);
         }
+
+        $data['user_id']      = $request->user()->id;
+        $data['withdrawn_at'] = $data['withdrawn_at'] ?? now();
+        $data['stock_before'] = $book->current_stock;
+        $data['stock_after']  = $book->current_stock - $data['quantity'];
+
+        $withdrawal = StockWithdrawal::create($data);
+        $withdrawal->load(['book.subject', 'user']);
+
+        return $this->success(
+            new StockWithdrawalResource($withdrawal),
+            'Saída de estoque registrada com sucesso.',
+            201
+        );
     }
 
-    public function show(StockWithdrawal $withdrawal): JsonResponse
+    public function show(StockWithdrawal $stockWithdrawal): JsonResponse
     {
-        return $this->success($withdrawal->load(['book', 'user']));
+        $stockWithdrawal->load(['book.subject', 'user']);
+
+        return $this->success(new StockWithdrawalResource($stockWithdrawal));
     }
 }

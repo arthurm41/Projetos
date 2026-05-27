@@ -1,0 +1,151 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Book;
+use App\Models\BookRequisition;
+use App\Models\StockWithdrawal;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
+
+class BookRequisitionController extends Controller
+{
+    public function index(): View
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('almoxarife')) {
+            $requisitions = BookRequisition::with(['book.subject', 'requester'])
+                ->orderByRaw("FIELD(status, 'pending', 'approved', 'delivered', 'cancelled')")
+                ->latest()
+                ->paginate(15);
+        } else {
+            $requisitions = BookRequisition::with(['book.subject', 'approver'])
+                ->where('requested_by', $user->id)
+                ->latest()
+                ->paginate(15);
+        }
+
+        return view('requisitions.index', compact('requisitions'));
+    }
+
+    public function create(): View
+    {
+        $books = Book::with('subject')->orderBy('title')->get();
+
+        return view('requisitions.create', compact('books'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'book_id'     => 'required|exists:books,id',
+            'quantity'    => 'required|integer|min:1',
+            'class_group' => 'nullable|string|max:100',
+            'reason'      => 'nullable|string|max:500',
+        ], [
+            'book_id.required' => 'Selecione um livro.',
+            'quantity.min'     => 'A quantidade deve ser ao menos 1.',
+        ]);
+
+        BookRequisition::create([
+            ...$validated,
+            'requested_by' => Auth::id(),
+            'status'       => 'pending',
+        ]);
+
+        return redirect()->route('requisitions.index')
+            ->with('success', 'Requisição enviada. Aguarde a aprovação do almoxarife.');
+    }
+
+    public function show(BookRequisition $requisition): View
+    {
+        $requisition->load(['book.subject', 'requester', 'approver']);
+
+        return view('requisitions.show', compact('requisition'));
+    }
+
+    public function approve(BookRequisition $requisition): RedirectResponse
+    {
+        if (! Auth::user()->hasRole('almoxarife')) {
+            return redirect()->route('requisitions.index')
+                ->with('error', 'Apenas o almoxarife pode aprovar requisições.');
+        }
+
+        if (! $requisition->isPending()) {
+            return back()->with('error', 'Apenas requisições pendentes podem ser aprovadas.');
+        }
+
+        $book = $requisition->book;
+
+        if ($book->current_stock < $requisition->quantity) {
+            return back()->with('error',
+                "Estoque insuficiente. Disponível: {$book->current_stock} unidade(s). Requisitado: {$requisition->quantity}."
+            );
+        }
+
+        DB::transaction(function () use ($requisition, $book) {
+            StockWithdrawal::create([
+                'book_id'      => $requisition->book_id,
+                'user_id'      => Auth::id(),
+                'quantity'     => $requisition->quantity,
+                'stock_before' => $book->current_stock,
+                'stock_after'  => $book->current_stock - $requisition->quantity,
+                'class_group'  => $requisition->class_group,
+                'reason'       => "Requisição #{$requisition->id}: " . ($requisition->reason ?? 'sem motivo especificado'),
+                'withdrawn_at' => now(),
+            ]);
+
+            $requisition->update([
+                'status'      => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+            ]);
+        });
+
+        return redirect()->route('requisitions.index')
+            ->with('success', "Requisição #{$requisition->id} aprovada. Livros separados do estoque.");
+    }
+
+    public function deliver(BookRequisition $requisition): RedirectResponse
+    {
+        if (! $requisition->isApproved()) {
+            return back()->with('error', 'Apenas requisições aprovadas podem ser confirmadas.');
+        }
+
+        if ($requisition->requested_by !== Auth::id()) {
+            return back()->with('error', 'Somente o professor que fez a requisição pode confirmar o recebimento.');
+        }
+
+        $requisition->update([
+            'status'       => 'delivered',
+            'delivered_at' => now(),
+        ]);
+
+        return redirect()->route('requisitions.show', $requisition)
+            ->with('success', 'Recebimento confirmado! Obrigado.');
+    }
+
+    public function cancel(BookRequisition $requisition): RedirectResponse
+    {
+        if ($requisition->isDelivered()) {
+            return back()->with('error', 'Não é possível cancelar uma requisição já entregue.');
+        }
+
+        $user = Auth::user();
+        $isOwner     = $requisition->requested_by === $user->id;
+        $isAlmox     = $user->hasRole('almoxarife');
+
+        if (! $isOwner && ! $isAlmox) {
+            return back()->with('error', 'Você não tem permissão para cancelar esta requisição.');
+        }
+
+        $requisition->update(['status' => 'cancelled']);
+
+        return redirect()->route('requisitions.index')
+            ->with('success', 'Requisição cancelada.');
+    }
+}

@@ -36,15 +36,15 @@ class RolesAndPermissionsSeeder extends Seeder
             ['name' => 'Almoxarife', 'description' => 'Responsável pelo almoxarifado']
         );
 
-        $coordenador = Role::firstOrCreate(
-            ['slug' => 'coordenador'],
-            ['name' => 'Coordenador', 'description' => 'Coordenador de estoque e relatórios']
+        $professor = Role::firstOrCreate(
+            ['slug' => 'professor'],
+            ['name' => 'Professor', 'description' => 'Professor que pode requisitar livros']
         );
 
         // Atribuir permissions ao Almoxarife
         $almoxarifePermissions = [
-            'view-books', 'create-entries', 'view-entries', 
-            'create-withdrawals', 'view-withdrawals'
+            'view-books', 'create-entries', 'view-entries',
+            'create-withdrawals', 'view-withdrawals', 'view-reports',
         ];
 
         foreach ($almoxarifePermissions as $slug) {
@@ -54,16 +54,15 @@ class RolesAndPermissionsSeeder extends Seeder
             }
         }
 
-        // Atribuir permissions ao Coordenador
-        $coordenadorPermissions = [
-            'view-books', 'create-books', 'edit-books',
-            'view-entries', 'view-withdrawals', 'view-reports'
+        // Atribuir permissions ao Professor
+        $professorPermissions = [
+            'view-books', 'create-books', 'edit-books', 'view-entries', 'view-withdrawals',
         ];
 
-        foreach ($coordenadorPermissions as $slug) {
+        foreach ($professorPermissions as $slug) {
             $permission = Permission::where('slug', $slug)->first();
-            if ($permission && !$coordenador->permissions()->where('permission_id', $permission->id)->exists()) {
-                $coordenador->permissions()->attach($permission);
+            if ($permission && !$professor->permissions()->where('permission_id', $permission->id)->exists()) {
+                $professor->permissions()->attach($permission);
             }
         }
     }

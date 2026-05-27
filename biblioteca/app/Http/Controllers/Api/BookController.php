@@ -2,62 +2,62 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
+use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class BookController extends ApiController
 {
     public function index(): JsonResponse
     {
-        $books = Book::with('subject')->get();
-        return $this->success($books);
+        $books = Book::with('subject')->orderBy('title')->get();
+
+        return $this->success(BookResource::collection($books));
     }
 
-    public function lowStock(): JsonResponse
+    public function store(StoreBookRequest $request): JsonResponse
     {
-        $books = Book::whereRaw('current_stock < minimum_stock')
-            ->with('subject')
-            ->get();
-        
-        return $this->success($books, 'Livros com estoque baixo');
+        $book = Book::create($request->validated());
+        $book->load('subject');
+
+        return $this->success(new BookResource($book), 'Livro cadastrado com sucesso.', 201);
     }
 
     public function show(Book $book): JsonResponse
     {
-        return $this->success($book->load('subject'));
+        $book->load('subject');
+
+        return $this->success(new BookResource($book));
     }
 
-    public function store(Request $request): JsonResponse
+    public function update(UpdateBookRequest $request, Book $book): JsonResponse
     {
-        $validated = $request->validate([
-            'subject_id' => 'required|exists:subjects,id',
-            'title' => 'required|string|max:255|unique:books',
-            'isbn' => 'required|string|max:20|unique:books',
-            'author' => 'nullable|string|max:255',
-            'publisher' => 'nullable|string|max:150',
-            'edition' => 'nullable|string|max:20',
-            'current_stock' => 'required|integer|min:0',
-            'minimum_stock' => 'required|integer|min:0',
-        ]);
+        $book->update($request->validated());
+        $book->load('subject');
 
-        $book = Book::create($validated);
-        return $this->success($book, 'Livro criado com sucesso', 201);
+        return $this->success(new BookResource($book), 'Livro atualizado com sucesso.');
     }
 
-    public function update(Request $request, Book $book): JsonResponse
+    public function destroy(Book $book): JsonResponse
     {
-        $validated = $request->validate([
-            'subject_id' => 'exists:subjects,id',
-            'title' => 'string|max:255|unique:books,title,' . $book->id,
-            'isbn' => 'string|max:20|unique:books,isbn,' . $book->id,
-            'author' => 'nullable|string|max:255',
-            'publisher' => 'nullable|string|max:150',
-            'edition' => 'nullable|string|max:20',
-            'minimum_stock' => 'integer|min:0',
-        ]);
+        if ($book->stockEntries()->exists() || $book->stockWithdrawals()->exists()) {
+            return $this->error('Não é possível excluir: existem movimentações de estoque para este livro.', 422);
+        }
 
-        $book->update($validated);
-        return $this->success($book, 'Livro atualizado com sucesso');
+        $book->delete();
+
+        return $this->success(null, 'Livro excluído com sucesso.');
+    }
+
+    public function lowStock(): JsonResponse
+    {
+        $books = Book::with('subject')
+            ->whereColumn('current_stock', '<', 'minimum_stock')
+            ->orderBy('current_stock')
+            ->get();
+
+        return $this->success(BookResource::collection($books), 'Livros com estoque abaixo do mínimo.');
     }
 }
