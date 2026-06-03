@@ -23,21 +23,31 @@
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('books.*') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                             Livros
                         </a>
+
                         <a href="{{ route('subjects.index') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('subjects.*') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                             Matérias
                         </a>
+
                         <a href="{{ route('stock-entries.index') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('stock-entries.*') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                             Entradas
                         </a>
+
                         <a href="{{ route('stock-withdrawals.index') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('stock-withdrawals.*') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                             Saídas
                         </a>
+
                         <a href="{{ route('low-stock') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('low-stock') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                             Estoque Mínimo
+                        </a>
+
+                        <a href="{{ route('mailpit') }}"
+                           target="_blank"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('mailpit') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                            E-mails
                         </a>
                     @endif
 
@@ -61,6 +71,7 @@
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
                         </svg>
                     </button>
+
                     <div x-show="open" @click.outside="open = false" x-transition
                          class="absolute right-0 mt-1 w-44 bg-white rounded-md shadow-lg border border-gray-200 z-50">
                         <form method="POST" action="{{ route('logout') }}">
@@ -89,22 +100,50 @@
     <!-- Mobile Menu -->
     <div :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden border-t border-gray-200">
         <div class="px-2 pt-2 pb-3 space-y-1">
-            <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Dashboard</a>
+            <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                Dashboard
+            </a>
+
             @if(Auth::user()->hasRole('almoxarife'))
-                <a href="{{ route('books.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Livros</a>
-                <a href="{{ route('subjects.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Matérias</a>
-                <a href="{{ route('stock-entries.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Entradas de Estoque</a>
-                <a href="{{ route('stock-withdrawals.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Saídas de Estoque</a>
-                <a href="{{ route('low-stock') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Estoque Mínimo</a>
+                <a href="{{ route('books.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                    Livros
+                </a>
+
+                <a href="{{ route('subjects.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                    Matérias
+                </a>
+
+                <a href="{{ route('stock-entries.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                    Entradas de Estoque
+                </a>
+
+                <a href="{{ route('stock-withdrawals.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                    Saídas de Estoque
+                </a>
+
+                <a href="{{ route('low-stock') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                    Estoque Mínimo
+                </a>
+
+                <a href="{{ route('mailpit') }}" target="_blank" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                    E-mails
+                </a>
             @endif
-            <a href="{{ route('requisitions.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Requisições</a>
+
+            <a href="{{ route('requisitions.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                Requisições
+            </a>
         </div>
+
         <div class="pt-4 pb-3 border-t border-gray-200 px-4">
             <p class="text-sm font-medium text-gray-800">{{ Auth::user()->name }}</p>
             <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
+
             <form method="POST" action="{{ route('logout') }}" class="mt-3">
                 @csrf
-                <button type="submit" class="text-sm text-red-600 font-medium">Sair</button>
+                <button type="submit" class="text-sm text-red-600 font-medium">
+                    Sair
+                </button>
             </form>
         </div>
     </div>

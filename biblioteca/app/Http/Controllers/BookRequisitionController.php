@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\RequisicaoAprovadaMail;
 use App\Models\Book;
 use App\Models\BookRequisition;
 use App\Models\StockWithdrawal;
@@ -9,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class BookRequisitionController extends Controller
@@ -82,7 +84,8 @@ class BookRequisitionController extends Controller
         $book = $requisition->book;
 
         if ($book->current_stock < $requisition->quantity) {
-            return back()->with('error',
+            return back()->with(
+                'error',
                 "Estoque insuficiente. Disponível: {$book->current_stock} unidade(s). Requisitado: {$requisition->quantity}."
             );
         }
@@ -106,8 +109,16 @@ class BookRequisitionController extends Controller
             ]);
         });
 
+        $requisition->load(['book.subject', 'requester', 'approver']);
+
+        Mail::to($requisition->requester->email)
+            ->send(new RequisicaoAprovadaMail($requisition));
+
         return redirect()->route('requisitions.index')
-            ->with('success', "Requisição #{$requisition->id} aprovada. Livros separados do estoque.");
+            ->with(
+                'success',
+                "Requisição #{$requisition->id} aprovada com sucesso. O professor foi notificado por e-mail."
+            );
     }
 
     public function deliver(BookRequisition $requisition): RedirectResponse
@@ -136,8 +147,8 @@ class BookRequisitionController extends Controller
         }
 
         $user = Auth::user();
-        $isOwner     = $requisition->requested_by === $user->id;
-        $isAlmox     = $user->hasRole('almoxarife');
+        $isOwner = $requisition->requested_by === $user->id;
+        $isAlmox = $user->hasRole('almoxarife');
 
         if (! $isOwner && ! $isAlmox) {
             return back()->with('error', 'Você não tem permissão para cancelar esta requisição.');
