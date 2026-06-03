@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requisitions', [BookRequisitionController::class, 'store'])->name('requisitions.store');
     Route::get('/requisitions/{requisition}', [BookRequisitionController::class, 'show'])->name('requisitions.show');
     Route::post('/requisitions/{requisition}/approve', [BookRequisitionController::class, 'approve'])->name('requisitions.approve');
+    Route::post('/requisitions/{requisition}/dispatch', [BookRequisitionController::class, 'dispatch'])->name('requisitions.dispatch');
     Route::post('/requisitions/{requisition}/deliver', [BookRequisitionController::class, 'deliver'])->name('requisitions.deliver');
     Route::post('/requisitions/{requisition}/cancel', [BookRequisitionController::class, 'cancel'])->name('requisitions.cancel');
 });

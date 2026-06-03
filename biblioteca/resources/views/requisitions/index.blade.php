@@ -51,6 +51,8 @@
                                 <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Pendente</span>
                             @elseif($req->isApproved())
                                 <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Aprovada</span>
+                            @elseif($req->isDispatched())
+                                <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">Em retirada</span>
                             @elseif($req->isDelivered())
                                 <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Entregue</span>
                             @else
@@ -61,30 +63,153 @@
                             {{ $req->created_at->format('d/m/Y H:i') }}
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
+                            <div class="flex items-center justify-end gap-2 flex-wrap">
                                 <a href="{{ route('requisitions.show', $req) }}"
                                    class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
                                     Ver
                                 </a>
+
+                                {{-- Almoxarife: Aprovar (pendente) --}}
                                 @if(Auth::user()->hasRole('almoxarife') && $req->isPending())
-                                    <form method="POST" action="{{ route('requisitions.approve', $req) }}">
-                                        @csrf
-                                        <button type="submit"
+                                    <div x-data="{ open: false }">
+                                        <button type="button" @click="open = true"
                                                 class="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-md hover:bg-green-100 transition-colors">
                                             Aprovar
                                         </button>
-                                    </form>
+                                        <div x-show="open" x-cloak
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0"
+                                             x-transition:enter-end="opacity-100"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-100"
+                                             x-transition:leave-end="opacity-0"
+                                             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                                             @click.self="open = false">
+                                            <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md" @click.stop>
+                                                <div class="flex items-center gap-3 mb-5">
+                                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                                                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="text-base font-bold text-gray-900">Aprovar Requisição #{{ $req->id }}</h3>
+                                                        <p class="text-xs text-gray-500 mt-0.5">{{ $req->book->title }} · {{ $req->quantity }} unidade(s)</p>
+                                                    </div>
+                                                </div>
+                                                <form method="POST" action="{{ route('requisitions.approve', $req) }}">
+                                                    @csrf
+                                                    <div class="space-y-4">
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                                                                Data inicial da previsão de entrega
+                                                            </label>
+                                                            <input type="date" name="estimated_delivery_from" required
+                                                                   min="{{ date('Y-m-d') }}"
+                                                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                                                                Data final da previsão de entrega
+                                                            </label>
+                                                            <input type="date" name="estimated_delivery_to" required
+                                                                   min="{{ date('Y-m-d') }}"
+                                                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex gap-3 mt-6">
+                                                        <button type="button" @click="open = false"
+                                                                class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                                                            Cancelar
+                                                        </button>
+                                                        <button type="submit"
+                                                                class="flex-1 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition-colors">
+                                                            Aprovar
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                 @endif
-                                @if(!Auth::user()->hasRole('almoxarife') && $req->isApproved())
+
+                                {{-- Almoxarife: Confirmar entrega (aprovado) --}}
+                                @if(Auth::user()->hasRole('almoxarife') && $req->isApproved())
+                                    <div x-data="{ open: false }">
+                                        <button type="button" @click="open = true"
+                                                class="px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors">
+                                            Confirmar Entrega
+                                        </button>
+                                        <div x-show="open" x-cloak
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0"
+                                             x-transition:enter-end="opacity-100"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-100"
+                                             x-transition:leave-end="opacity-0"
+                                             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                                             @click.self="open = false">
+                                            <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md" @click.stop>
+                                                <div class="flex items-center gap-3 mb-5">
+                                                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
+                                                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8 8-4-4"/>
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="text-base font-bold text-gray-900">Confirmar Entrega #{{ $req->id }}</h3>
+                                                        <p class="text-xs text-gray-500 mt-0.5">{{ $req->book->title }} · para {{ $req->requester->name }}</p>
+                                                    </div>
+                                                </div>
+                                                <form method="POST" action="{{ route('requisitions.dispatch', $req) }}">
+                                                    @csrf
+                                                    <div class="space-y-4">
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                                                                Data e hora da entrega
+                                                            </label>
+                                                            <input type="datetime-local" name="dispatched_at" required
+                                                                   value="{{ now()->format('Y-m-d\TH:i') }}"
+                                                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                                                                Quem realizou a retirada
+                                                            </label>
+                                                            <input type="text" name="delivered_by" required
+                                                                   placeholder="Nome completo de quem retirou os livros"
+                                                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex gap-3 mt-6">
+                                                        <button type="button" @click="open = false"
+                                                                class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                                                            Cancelar
+                                                        </button>
+                                                        <button type="submit"
+                                                                class="flex-1 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-xl hover:bg-purple-700 transition-colors">
+                                                            Confirmar Entrega
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Professor: Confirmar recebimento (em retirada) --}}
+                                @if(!Auth::user()->hasRole('almoxarife') && $req->isDispatched() && $req->requested_by === Auth::id())
                                     <form method="POST" action="{{ route('requisitions.deliver', $req) }}">
                                         @csrf
                                         <button type="submit"
-                                                class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
+                                                class="px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors">
                                             Confirmar Recebimento
                                         </button>
                                     </form>
                                 @endif
-                                @if(!$req->isDelivered() && !$req->isCancelled())
+
+                                {{-- Cancelar --}}
+                                @if($req->isActive() && !$req->isDispatched())
                                     <div x-data="{ open: false }">
                                         <button type="button" @click="open = true"
                                                 class="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors">

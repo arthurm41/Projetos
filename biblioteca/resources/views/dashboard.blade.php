@@ -20,19 +20,43 @@
             </div>
 
             @forelse($pendingRequisitions as $req)
-                <div class="flex items-start justify-between py-3 {{ !$loop->last ? 'border-b border-gray-100' : '' }} gap-3">
-                    <div class="min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">{{ $req->book->title }}</p>
-                        <p class="text-xs text-gray-400 mt-0.5">{{ $req->created_at->format('d/m/Y') }}</p>
+                <div class="py-3 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ $req->book->title }}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">{{ $req->created_at->format('d/m/Y') }} · {{ $req->quantity }}x</p>
+                        </div>
+                        <div class="shrink-0 text-right">
+                            @if($req->isPending())
+                                <span class="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Pendente</span>
+                            @elseif($req->isApproved())
+                                <span class="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Aprovada</span>
+                            @elseif($req->isDispatched())
+                                <span class="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">Em retirada</span>
+                            @endif
+                        </div>
                     </div>
-                    <div class="shrink-0 text-right">
-                        <p class="text-sm font-semibold text-indigo-600">{{ $req->quantity }}x</p>
-                        @if($req->isPending())
-                            <span class="text-xs text-yellow-600 font-medium">Pendente</span>
-                        @elseif($req->isApproved())
-                            <span class="text-xs text-blue-600 font-medium">Aguardando retirada</span>
-                        @endif
+
+                    {{-- Previsão de entrega --}}
+                    @if($req->isApproved() && $req->estimated_delivery_from)
+                    <div class="mt-2 flex items-center gap-1.5 text-xs text-blue-600">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Previsão: {{ $req->estimated_delivery_from->format('d/m') }} – {{ $req->estimated_delivery_to->format('d/m/Y') }}
                     </div>
+                    @endif
+
+                    {{-- Aviso de em retirada --}}
+                    @if($req->isDispatched())
+                    <div class="mt-2 flex items-center justify-between">
+                        <p class="text-xs text-purple-600 font-medium">
+                            Livros entregues em {{ $req->dispatched_at->format('d/m/Y \à\s H:i') }} — confirme o recebimento.
+                        </p>
+                        <a href="{{ route('requisitions.show', $req) }}"
+                           class="text-xs text-indigo-600 font-medium hover:underline">Confirmar →</a>
+                    </div>
+                    @endif
                 </div>
             @empty
                 <p class="text-sm text-gray-400 py-4 text-center">Nenhuma requisição em aberto.</p>
@@ -118,32 +142,166 @@
 
     {{-- Requisições Pendentes (almoxarife) --}}
     @if($pendingCount > 0)
-    <div class="mb-6 bg-indigo-50 border border-indigo-200 rounded-xl p-5">
+    <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-5">
         <div class="flex justify-between items-center mb-3">
-            <h3 class="font-semibold text-indigo-700 flex items-center gap-2">
+            <h3 class="font-semibold text-yellow-700 flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 {{ $pendingCount }} requisição(ões) aguardando aprovação
             </h3>
-            <a href="{{ route('requisitions.index') }}" class="text-xs text-indigo-600 hover:underline font-medium">Ver todas →</a>
+            <a href="{{ route('requisitions.index') }}" class="text-xs text-yellow-700 hover:underline font-medium">Ver todas →</a>
         </div>
         <div class="space-y-2">
             @foreach($pendingRequisitions as $req)
             <div class="flex items-center justify-between bg-white rounded-lg px-4 py-3">
                 <div>
                     <p class="text-sm font-medium text-gray-900">{{ $req->book->title }}</p>
-                    <p class="text-xs text-gray-400">{{ $req->requester->name }} · {{ $req->created_at->format('d/m/Y H:i') }}</p>
+                    <p class="text-xs text-gray-400">{{ $req->requester->name }} · {{ $req->quantity }}x · {{ $req->created_at->format('d/m/Y H:i') }}</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-sm font-semibold text-indigo-600">{{ $req->quantity }}x</span>
-                    <form method="POST" action="{{ route('requisitions.approve', $req) }}">
-                        @csrf
-                        <button type="submit"
-                                class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
-                            Aprovar
-                        </button>
-                    </form>
+                <div x-data="{ open: false }">
+                    <button type="button" @click="open = true"
+                            class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
+                        Aprovar
+                    </button>
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                         @click.self="open = false">
+                        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md" @click.stop>
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900">Aprovar Requisição #{{ $req->id }}</h3>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ $req->book->title }} · {{ $req->quantity }}x · {{ $req->requester->name }}</p>
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ route('requisitions.approve', $req) }}">
+                                @csrf
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1.5">Data inicial da previsão de entrega</label>
+                                        <input type="date" name="estimated_delivery_from" required
+                                               min="{{ date('Y-m-d') }}"
+                                               class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1.5">Data final da previsão de entrega</label>
+                                        <input type="date" name="estimated_delivery_to" required
+                                               min="{{ date('Y-m-d') }}"
+                                               class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 mt-6">
+                                    <button type="button" @click="open = false"
+                                            class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit"
+                                            class="flex-1 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition-colors">
+                                        Aprovar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- Aprovadas aguardando confirmação de entrega (almoxarife) --}}
+    @if($dispatchedCount > 0)
+    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-blue-700 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {{ $dispatchedCount }} requisição(ões) aguardando confirmação de entrega
+            </h3>
+            <a href="{{ route('requisitions.index') }}" class="text-xs text-blue-600 hover:underline font-medium">Ver todas →</a>
+        </div>
+        <div class="space-y-2">
+            @foreach($dispatchedRequisitions as $req)
+            <div class="flex items-center justify-between bg-white rounded-lg px-4 py-3">
+                <div>
+                    <p class="text-sm font-medium text-gray-900">{{ $req->book->title }}</p>
+                    <p class="text-xs text-gray-400">
+                        {{ $req->requester->name }} · {{ $req->quantity }}x
+                        @if($req->estimated_delivery_to && $req->estimated_delivery_to->isPast())
+                            · <span class="text-red-500 font-medium">Previsão expirada</span>
+                        @elseif($req->estimated_delivery_to)
+                            · até {{ $req->estimated_delivery_to->format('d/m/Y') }}
+                        @endif
+                    </p>
+                </div>
+                <div x-data="{ open: false }">
+                    <button type="button" @click="open = true"
+                            class="px-3 py-1.5 text-xs font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors">
+                        Confirmar Entrega
+                    </button>
+                    <div x-show="open" x-cloak
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                         @click.self="open = false">
+                        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md" @click.stop>
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8 8-4-4"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900">Confirmar Entrega #{{ $req->id }}</h3>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ $req->book->title }} · para {{ $req->requester->name }}</p>
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ route('requisitions.dispatch', $req) }}">
+                                @csrf
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1.5">Data e hora da entrega</label>
+                                        <input type="datetime-local" name="dispatched_at" required
+                                               value="{{ now()->format('Y-m-d\TH:i') }}"
+                                               class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1.5">Quem realizou a retirada</label>
+                                        <input type="text" name="delivered_by" required
+                                               placeholder="Nome completo de quem retirou os livros"
+                                               class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 mt-6">
+                                    <button type="button" @click="open = false"
+                                            class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit"
+                                            class="flex-1 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-xl hover:bg-purple-700 transition-colors">
+                                        Confirmar Entrega
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
             @endforeach

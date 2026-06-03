@@ -44,14 +44,23 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
             $pendingCount = BookRequisition::where('status', 'pending')->count();
+
+            $dispatchedRequisitions = BookRequisition::with(['book', 'requester'])
+                ->where('status', 'approved')
+                ->latest()
+                ->limit(5)
+                ->get();
+            $dispatchedCount = BookRequisition::where('status', 'approved')->count();
         } else {
             $pendingRequisitions = BookRequisition::with(['book'])
                 ->where('requested_by', $user->id)
-                ->whereIn('status', ['pending', 'approved'])
+                ->whereIn('status', ['pending', 'approved', 'dispatched'])
                 ->latest()
                 ->limit(5)
                 ->get();
             $pendingCount = $pendingRequisitions->count();
+            $dispatchedRequisitions = collect();
+            $dispatchedCount = 0;
         }
 
         return view('dashboard', compact(
@@ -63,7 +72,9 @@ class DashboardController extends Controller
             'recentWithdrawals',
             'lowStockBooks',
             'pendingRequisitions',
-            'pendingCount'
+            'pendingCount',
+            'dispatchedRequisitions',
+            'dispatchedCount'
         ));
     }
 }

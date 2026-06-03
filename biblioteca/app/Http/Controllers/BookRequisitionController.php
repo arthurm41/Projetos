@@ -19,7 +19,7 @@ class BookRequisitionController extends Controller
 
         if ($user->hasRole('almoxarife')) {
             $requisitions = BookRequisition::with(['book.subject', 'requester'])
-                ->orderByRaw("FIELD(status, 'pending', 'approved', 'delivered', 'cancelled')")
+                ->orderByRaw("FIELD(status, 'pending', 'approved', 'dispatched', 'delivered', 'cancelled')")
                 ->latest()
                 ->paginate(15);
         } else {
@@ -68,7 +68,7 @@ class BookRequisitionController extends Controller
         return view('requisitions.show', compact('requisition'));
     }
 
-    public function approve(BookRequisition $requisition): RedirectResponse
+    public function approve(BookRequisition $requisition, Request $request): RedirectResponse
     {
         if (! Auth::user()->hasRole('almoxarife')) {
             return redirect()->route('requisitions.index')
@@ -87,7 +87,17 @@ class BookRequisitionController extends Controller
             );
         }
 
-        DB::transaction(function () use ($requisition, $book) {
+        $validated = $request->validate([
+            'estimated_delivery_from' => 'required|date|after_or_equal:today',
+            'estimated_delivery_to'   => 'required|date|after_or_equal:estimated_delivery_from',
+        ], [
+            'estimated_delivery_from.required'       => 'Informe a data inicial da previsão de entrega.',
+            'estimated_delivery_from.after_or_equal' => 'A data inicial deve ser hoje ou posterior.',
+            'estimated_delivery_to.required'         => 'Informe a data final da previsão de entrega.',
+            'estimated_delivery_to.after_or_equal'   => 'A data final deve ser igual ou posterior à data inicial.',
+        ]);
+
+        DB::transaction(function () use ($requisition, $book, $validated) {
             StockWithdrawal::create([
                 'book_id'      => $requisition->book_id,
                 'user_id'      => Auth::id(),
@@ -100,20 +110,51 @@ class BookRequisitionController extends Controller
             ]);
 
             $requisition->update([
-                'status'      => 'approved',
-                'approved_by' => Auth::id(),
-                'approved_at' => now(),
+                'status'                  => 'approved',
+                'approved_by'             => Auth::id(),
+                'approved_at'             => now(),
+                'estimated_delivery_from' => $validated['estimated_delivery_from'],
+                'estimated_delivery_to'   => $validated['estimated_delivery_to'],
             ]);
         });
 
         return redirect()->route('requisitions.index')
-            ->with('success', "Requisição #{$requisition->id} aprovada. Livros separados do estoque.");
+            ->with('success', "Requisição #{$requisition->id} aprovada com previsão de entrega registrada.");
+    }
+
+    public function dispatch(BookRequisition $requisition, Request $request): RedirectResponse
+    {
+        if (! Auth::user()->hasRole('almoxarife')) {
+            return redirect()->route('requisitions.index')
+                ->with('error', 'Apenas o almoxarife pode confirmar a entrega.');
+        }
+
+        if (! $requisition->isApproved()) {
+            return back()->with('error', 'Apenas requisições aprovadas podem ser confirmadas para entrega.');
+        }
+
+        $validated = $request->validate([
+            'dispatched_at' => 'required|date',
+            'delivered_by'  => 'required|string|max:150',
+        ], [
+            'dispatched_at.required' => 'Informe a data e hora da entrega.',
+            'delivered_by.required'  => 'Informe quem realizou a retirada.',
+        ]);
+
+        $requisition->update([
+            'status'        => 'dispatched',
+            'dispatched_at' => $validated['dispatched_at'],
+            'delivered_by'  => $validated['delivered_by'],
+        ]);
+
+        return redirect()->route('requisitions.show', $requisition)
+            ->with('success', 'Entrega registrada. Aguardando confirmação do professor.');
     }
 
     public function deliver(BookRequisition $requisition): RedirectResponse
     {
-        if (! $requisition->isApproved()) {
-            return back()->with('error', 'Apenas requisições aprovadas podem ser confirmadas.');
+        if (! $requisition->isDispatched()) {
+            return back()->with('error', 'O almoxarife ainda não confirmou a entrega desta requisição.');
         }
 
         if ($requisition->requested_by !== Auth::id()) {
@@ -131,13 +172,13 @@ class BookRequisitionController extends Controller
 
     public function cancel(BookRequisition $requisition): RedirectResponse
     {
-        if ($requisition->isDelivered()) {
-            return back()->with('error', 'Não é possível cancelar uma requisição já entregue.');
+        if ($requisition->isDelivered() || $requisition->isDispatched()) {
+            return back()->with('error', 'Não é possível cancelar uma requisição em processo de entrega ou já entregue.');
         }
 
-        $user = Auth::user();
-        $isOwner     = $requisition->requested_by === $user->id;
-        $isAlmox     = $user->hasRole('almoxarife');
+        $user    = Auth::user();
+        $isOwner = $requisition->requested_by === $user->id;
+        $isAlmox = $user->hasRole('almoxarife');
 
         if (! $isOwner && ! $isAlmox) {
             return back()->with('error', 'Você não tem permissão para cancelar esta requisição.');
