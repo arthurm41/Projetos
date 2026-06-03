@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NovaRequisicaoMail;
+use App\Mail\RequisicaoAprovadaMail;
+use App\Mail\RequisicaoDespachadaMail;
 use App\Models\Book;
 use App\Models\BookRequisition;
 use App\Models\StockWithdrawal;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class BookRequisitionController extends Controller
@@ -51,11 +56,23 @@ class BookRequisitionController extends Controller
             'quantity.min'     => 'A quantidade deve ser ao menos 1.',
         ]);
 
-        BookRequisition::create([
+        $requisition = BookRequisition::create([
             ...$validated,
             'requested_by' => Auth::id(),
             'status'       => 'pending',
         ]);
+
+        $requisition->load(['book.subject', 'requester']);
+
+        $almoxarifes = User::whereHas('roles', fn($q) => $q->where('slug', 'almoxarife'))->get();
+
+        try {
+            foreach ($almoxarifes as $almoxarife) {
+                Mail::to($almoxarife->email)->send(new NovaRequisicaoMail($requisition));
+            }
+        } catch (\Exception $e) {
+            \Log::warning("Falha ao enviar e-mail de nova requisição #{$requisition->id}: {$e->getMessage()}");
+        }
 
         return redirect()->route('requisitions.index')
             ->with('success', 'Requisição enviada. Aguarde a aprovação do almoxarife.');
@@ -79,14 +96,6 @@ class BookRequisitionController extends Controller
             return back()->with('error', 'Apenas requisições pendentes podem ser aprovadas.');
         }
 
-        $book = $requisition->book;
-
-        if ($book->current_stock < $requisition->quantity) {
-            return back()->with('error',
-                "Estoque insuficiente. Disponível: {$book->current_stock} unidade(s). Requisitado: {$requisition->quantity}."
-            );
-        }
-
         $validated = $request->validate([
             'estimated_delivery_from' => 'required|date|after_or_equal:today',
             'estimated_delivery_to'   => 'required|date|after_or_equal:estimated_delivery_from',
@@ -97,26 +106,47 @@ class BookRequisitionController extends Controller
             'estimated_delivery_to.after_or_equal'   => 'A data final deve ser igual ou posterior à data inicial.',
         ]);
 
-        DB::transaction(function () use ($requisition, $book, $validated) {
-            StockWithdrawal::create([
-                'book_id'      => $requisition->book_id,
-                'user_id'      => Auth::id(),
-                'quantity'     => $requisition->quantity,
-                'stock_before' => $book->current_stock,
-                'stock_after'  => $book->current_stock - $requisition->quantity,
-                'class_group'  => $requisition->class_group,
-                'reason'       => "Requisição #{$requisition->id}: " . ($requisition->reason ?? 'sem motivo especificado'),
-                'withdrawn_at' => now(),
-            ]);
+        try {
+            DB::transaction(function () use ($requisition, $validated) {
+                $book = Book::lockForUpdate()->findOrFail($requisition->book_id);
 
-            $requisition->update([
-                'status'                  => 'approved',
-                'approved_by'             => Auth::id(),
-                'approved_at'             => now(),
-                'estimated_delivery_from' => $validated['estimated_delivery_from'],
-                'estimated_delivery_to'   => $validated['estimated_delivery_to'],
-            ]);
-        });
+                if ($book->current_stock < $requisition->quantity) {
+                    throw new \Exception(
+                        "Estoque insuficiente. Disponível: {$book->current_stock} unidade(s). Requisitado: {$requisition->quantity}."
+                    );
+                }
+
+                StockWithdrawal::create([
+                    'book_id'      => $requisition->book_id,
+                    'user_id'      => Auth::id(),
+                    'quantity'     => $requisition->quantity,
+                    'stock_before' => $book->current_stock,
+                    'stock_after'  => $book->current_stock - $requisition->quantity,
+                    'class_group'  => $requisition->class_group,
+                    'reason'       => "Requisição #{$requisition->id}: " . ($requisition->reason ?? 'sem motivo especificado'),
+                    'withdrawn_at' => now(),
+                ]);
+
+                $requisition->update([
+                    'status'                  => 'approved',
+                    'approved_by'             => Auth::id(),
+                    'approved_at'             => now(),
+                    'estimated_delivery_from' => $validated['estimated_delivery_from'],
+                    'estimated_delivery_to'   => $validated['estimated_delivery_to'],
+                ]);
+            });
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $requisition->load(['book.subject', 'requester', 'approver']);
+
+        try {
+            Mail::to($requisition->requester->email)
+                ->send(new RequisicaoAprovadaMail($requisition));
+        } catch (\Exception $e) {
+            \Log::warning("Falha ao enviar e-mail de aprovação da requisição #{$requisition->id}: {$e->getMessage()}");
+        }
 
         return redirect()->route('requisitions.index')
             ->with('success', "Requisição #{$requisition->id} aprovada com previsão de entrega registrada.");
@@ -147,8 +177,17 @@ class BookRequisitionController extends Controller
             'delivered_by'  => $validated['delivered_by'],
         ]);
 
+        $requisition->load(['book.subject', 'requester']);
+
+        try {
+            Mail::to($requisition->requester->email)
+                ->send(new RequisicaoDespachadaMail($requisition));
+        } catch (\Exception $e) {
+            \Log::warning("Falha ao enviar e-mail de despacho da requisição #{$requisition->id}: {$e->getMessage()}");
+        }
+
         return redirect()->route('requisitions.show', $requisition)
-            ->with('success', 'Entrega registrada. Aguardando confirmação do professor.');
+            ->with('success', 'Entrega registrada. Professor notificado por e-mail.');
     }
 
     public function deliver(BookRequisition $requisition): RedirectResponse
@@ -182,6 +221,10 @@ class BookRequisitionController extends Controller
 
         if (! $isOwner && ! $isAlmox) {
             return back()->with('error', 'Você não tem permissão para cancelar esta requisição.');
+        }
+
+        if ($requisition->isApproved()) {
+            $requisition->book->increment('current_stock', $requisition->quantity);
         }
 
         $requisition->update(['status' => 'cancelled']);

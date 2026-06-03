@@ -13,6 +13,7 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('books', BookWebController::class)->except('show');
@@ -23,16 +24,26 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock-entries', [StockEntryWebController::class, 'store'])->name('stock-entries.store');
 
     Route::get('/stock-withdrawals', [StockWithdrawalWebController::class, 'index'])->name('stock-withdrawals.index');
-    Route::get('/stock-withdrawals/create', [StockWithdrawalWebController::class, 'create'])->name('stock-withdrawals.create');
-    Route::post('/stock-withdrawals', [StockWithdrawalWebController::class, 'store'])->name('stock-withdrawals.store');
 
     Route::get('/low-stock', function () {
         $books = \App\Models\Book::with('subject')
             ->whereColumn('current_stock', '<', 'minimum_stock')
             ->orderBy('current_stock')
             ->paginate(20);
+
         return view('low-stock', compact('books'));
     })->name('low-stock');
+
+    // Mailpit - Apenas Almoxarife
+    Route::get('/mailpit', function () {
+
+        if (! auth()->user()->hasRole('almoxarife')) {
+            abort(403, 'Acesso negado.');
+        }
+
+        return redirect()->away('http://127.0.0.1:8025');
+
+    })->name('mailpit');
 
     // Requisições de livros
     Route::get('/requisitions', [BookRequisitionController::class, 'index'])->name('requisitions.index');
@@ -43,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requisitions/{requisition}/dispatch', [BookRequisitionController::class, 'dispatch'])->name('requisitions.dispatch');
     Route::post('/requisitions/{requisition}/deliver', [BookRequisitionController::class, 'deliver'])->name('requisitions.deliver');
     Route::post('/requisitions/{requisition}/cancel', [BookRequisitionController::class, 'cancel'])->name('requisitions.cancel');
+
 });
 
 require __DIR__.'/auth.php';

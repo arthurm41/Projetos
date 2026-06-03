@@ -1,13 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Saídas de Estoque</x-slot>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-gray-800">Saídas de Estoque (Baixas)</h2>
-            <a href="{{ route('stock-withdrawals.create') }}"
-               class="px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition-colors">
-                + Registrar Saída
-            </a>
-        </div>
+        <h2 class="text-xl font-semibold text-gray-800">Histórico de Saídas</h2>
     </x-slot>
 
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -48,7 +42,6 @@
                     <tr>
                         <td colspan="8" class="px-6 py-12 text-center text-gray-400">
                             Nenhuma saída registrada.
-                            <a href="{{ route('stock-withdrawals.create') }}" class="text-blue-600 hover:underline ml-1">Registrar agora</a>
                         </td>
                     </tr>
                     @endforelse
