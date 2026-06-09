@@ -3,14 +3,65 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="text-xl font-semibold text-gray-800">Catálogo de Livros</h2>
+            @if(Auth::user()->hasRole('almoxarife'))
             <a href="{{ route('books.create') }}"
                class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                 + Novo Livro
             </a>
+            @endif
         </div>
     </x-slot>
 
+    {{-- Filtros --}}
+    <form method="GET" action="{{ route('books.index') }}" class="mb-4 bg-white rounded-xl shadow-sm p-4">
+        <div class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[180px]">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
+                <input type="text" name="search" value="{{ request('search') }}"
+                       placeholder="Título, ISBN ou autor..."
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="min-w-[160px]">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Matéria</label>
+                <select name="subject_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todas</option>
+                    @foreach($subjects as $subject)
+                        <option value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>
+                            {{ $subject->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="min-w-[140px]">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todos</option>
+                    <option value="ok"   {{ request('status') === 'ok'   ? 'selected' : '' }}>OK</option>
+                    <option value="low"  {{ request('status') === 'low'  ? 'selected' : '' }}>Estoque Baixo</option>
+                    <option value="zero" {{ request('status') === 'zero' ? 'selected' : '' }}>Zerado</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    Filtrar
+                </button>
+                @if(request()->hasAny(['search','subject_id','status']))
+                <a href="{{ route('books.index') }}"
+                   class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                    Limpar
+                </a>
+                @endif
+            </div>
+        </div>
+    </form>
+
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        @if(request()->hasAny(['search','subject_id','status']))
+        <div class="px-6 py-3 bg-blue-50 border-b border-blue-100 text-xs text-blue-700">
+            {{ $books->total() }} resultado(s) encontrado(s)
+        </div>
+        @endif
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 border-b border-gray-200">
@@ -31,7 +82,11 @@
                             <p class="font-medium text-gray-900">{{ $book->title }}</p>
                             <p class="text-xs text-gray-400 mt-0.5">ISBN: {{ $book->isbn }}</p>
                         </td>
-                        <td class="px-6 py-4 text-gray-600">{{ $book->subject->name }}</td>
+                        <td class="px-6 py-4 text-gray-600">
+                            @foreach($book->subjects as $s)
+                                <span class="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded mr-1">{{ $s->name }}</span>
+                            @endforeach
+                        </td>
                         <td class="px-6 py-4 text-gray-600">{{ $book->author ?? '—' }}</td>
                         <td class="px-6 py-4 text-center">
                             <span class="font-bold text-lg {{ $book->current_stock === 0 ? 'text-red-600' : ($book->isLowStock() ? 'text-yellow-600' : 'text-gray-800') }}">
@@ -50,6 +105,7 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
+                                @if(Auth::user()->hasRole('almoxarife'))
                                 <a href="{{ route('books.edit', $book) }}"
                                    class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
                                     Editar
@@ -95,14 +151,21 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
                         <td colspan="7" class="px-6 py-12 text-center text-gray-400">
-                            Nenhum livro cadastrado.
-                            <a href="{{ route('books.create') }}" class="text-blue-600 hover:underline ml-1">Cadastrar agora</a>
+                            @if(request()->hasAny(['search','subject_id','status']))
+                                Nenhum livro encontrado para os filtros aplicados.
+                            @else
+                                Nenhum livro cadastrado.
+                                @if(Auth::user()->hasRole('almoxarife'))
+                                <a href="{{ route('books.create') }}" class="text-blue-600 hover:underline ml-1">Cadastrar agora</a>
+                                @endif
+                            @endif
                         </td>
                     </tr>
                     @endforelse

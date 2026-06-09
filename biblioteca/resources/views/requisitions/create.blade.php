@@ -24,9 +24,9 @@
                         @foreach($books as $book)
                             <option value="{{ $book->id }}"
                                     data-stock="{{ $book->current_stock }}"
-                                    data-subject="{{ $book->subject->name }}"
+                                    data-subject="{{ $book->subjects->pluck('name')->join(', ') }}"
                                     {{ old('book_id') == $book->id ? 'selected' : '' }}>
-                                {{ $book->title }} ({{ $book->subject->name }}) — Estoque: {{ $book->current_stock }}
+                                {{ $book->title }} ({{ $book->subjects->pluck('name')->join(', ') }}) — Estoque: {{ $book->current_stock }}
                             </option>
                         @endforeach
                     </select>

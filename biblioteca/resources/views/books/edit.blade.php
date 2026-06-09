@@ -25,10 +25,6 @@
                        class="px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors">
                         + Entrada
                     </a>
-                    <a href="{{ route('stock-withdrawals.create') }}?book_id={{ $book->id }}"
-                       class="px-3 py-2 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 transition-colors">
-                        − Saída
-                    </a>
                 </div>
             </div>
 
@@ -50,16 +46,24 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Matéria *</label>
-                    <select name="subject_id" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('subject_id') border-red-400 @enderror">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Matéria(s) *
+                        <span class="text-xs font-normal text-gray-400 ml-1">Selecione uma ou mais</span>
+                    </label>
+                    @php
+                        $selectedIds = old('subject_ids', $book->subjects->pluck('id')->toArray());
+                    @endphp
+                    <div class="grid grid-cols-2 gap-2">
                         @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}" {{ old('subject_id', $book->subject_id) == $subject->id ? 'selected' : '' }}>
-                                {{ $subject->name }}
-                            </option>
+                        <label class="flex items-center gap-2.5 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                            <input type="checkbox" name="subject_ids[]" value="{{ $subject->id }}"
+                                   class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                   {{ in_array($subject->id, $selectedIds) ? 'checked' : '' }}>
+                            <span class="text-sm text-gray-700">{{ $subject->name }}</span>
+                        </label>
                         @endforeach
-                    </select>
-                    @error('subject_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    @error('subject_ids') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">

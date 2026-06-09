@@ -23,15 +23,48 @@ class BookRequisitionController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('almoxarife')) {
-            $requisitions = BookRequisition::with(['book.subject', 'requester'])
+            $query = BookRequisition::with(['book.subjects', 'requester'])
                 ->orderByRaw("FIELD(status, 'pending', 'approved', 'dispatched', 'delivered', 'cancelled')")
-                ->latest()
-                ->paginate(15);
+                ->latest();
+
+            if ($search = request('search')) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('book', fn($b) => $b->where('title', 'like', "%{$search}%"))
+                      ->orWhereHas('requester', fn($r) => $r->where('name', 'like', "%{$search}%"));
+                });
+            }
+
+            if ($status = request('status')) {
+                $query->where('status', $status);
+            }
+
+            if ($from = request('date_from')) {
+                $query->whereDate('created_at', '>=', $from);
+            }
+
+            if ($to = request('date_to')) {
+                $query->whereDate('created_at', '<=', $to);
+            }
+
+            $requisitions = $query->paginate(15)->withQueryString();
         } else {
-            $requisitions = BookRequisition::with(['book.subject', 'approver'])
+            $query = BookRequisition::with(['book.subjects', 'approver'])
                 ->where('requested_by', $user->id)
-                ->latest()
-                ->paginate(15);
+                ->latest();
+
+            if ($status = request('status')) {
+                $query->where('status', $status);
+            }
+
+            if ($from = request('date_from')) {
+                $query->whereDate('created_at', '>=', $from);
+            }
+
+            if ($to = request('date_to')) {
+                $query->whereDate('created_at', '<=', $to);
+            }
+
+            $requisitions = $query->paginate(15)->withQueryString();
         }
 
         return view('requisitions.index', compact('requisitions'));
@@ -39,7 +72,7 @@ class BookRequisitionController extends Controller
 
     public function create(): View
     {
-        $books = Book::with('subject')->orderBy('title')->get();
+        $books = Book::with('subjects')->orderBy('title')->get();
 
         return view('requisitions.create', compact('books'));
     }
@@ -62,7 +95,7 @@ class BookRequisitionController extends Controller
             'status'       => 'pending',
         ]);
 
-        $requisition->load(['book.subject', 'requester']);
+        $requisition->load(['book.subjects', 'requester']);
 
         $almoxarifes = User::whereHas('roles', fn($q) => $q->where('slug', 'almoxarife'))->get();
 
@@ -80,7 +113,7 @@ class BookRequisitionController extends Controller
 
     public function show(BookRequisition $requisition): View
     {
-        $requisition->load(['book.subject', 'requester', 'approver']);
+        $requisition->load(['book.subjects', 'requester', 'approver']);
 
         return view('requisitions.show', compact('requisition'));
     }
@@ -117,14 +150,15 @@ class BookRequisitionController extends Controller
                 }
 
                 StockWithdrawal::create([
-                    'book_id'      => $requisition->book_id,
-                    'user_id'      => Auth::id(),
-                    'quantity'     => $requisition->quantity,
-                    'stock_before' => $book->current_stock,
-                    'stock_after'  => $book->current_stock - $requisition->quantity,
-                    'class_group'  => $requisition->class_group,
-                    'reason'       => "Requisição #{$requisition->id}: " . ($requisition->reason ?? 'sem motivo especificado'),
-                    'withdrawn_at' => now(),
+                    'book_id'        => $requisition->book_id,
+                    'user_id'        => Auth::id(),
+                    'requisition_id' => $requisition->id,
+                    'quantity'       => $requisition->quantity,
+                    'stock_before'   => $book->current_stock,
+                    'stock_after'    => $book->current_stock - $requisition->quantity,
+                    'class_group'    => $requisition->class_group,
+                    'reason'         => "Requisição #{$requisition->id}: " . ($requisition->reason ?? 'sem motivo especificado'),
+                    'withdrawn_at'   => now(),
                 ]);
 
                 $requisition->update([
@@ -139,7 +173,7 @@ class BookRequisitionController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        $requisition->load(['book.subject', 'requester', 'approver']);
+        $requisition->load(['book.subjects', 'requester', 'approver']);
 
         try {
             Mail::to($requisition->requester->email)
@@ -171,13 +205,15 @@ class BookRequisitionController extends Controller
             'delivered_by.required'  => 'Informe quem realizou a retirada.',
         ]);
 
-        $requisition->update([
-            'status'        => 'dispatched',
-            'dispatched_at' => $validated['dispatched_at'],
-            'delivered_by'  => $validated['delivered_by'],
-        ]);
+        DB::transaction(function () use ($requisition, $validated) {
+            $requisition->update([
+                'status'        => 'dispatched',
+                'dispatched_at' => $validated['dispatched_at'],
+                'delivered_by'  => $validated['delivered_by'],
+            ]);
+        });
 
-        $requisition->load(['book.subject', 'requester']);
+        $requisition->load(['book.subjects', 'requester']);
 
         try {
             Mail::to($requisition->requester->email)
@@ -209,6 +245,20 @@ class BookRequisitionController extends Controller
             ->with('success', 'Recebimento confirmado! Obrigado.');
     }
 
+    public function destroy(BookRequisition $requisition): RedirectResponse
+    {
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
+
+        if (! in_array($requisition->status, ['cancelled', 'delivered'])) {
+            return back()->with('error', 'Apenas requisições canceladas ou entregues podem ser excluídas.');
+        }
+
+        $requisition->delete();
+
+        return redirect()->route('requisitions.index', request()->query())
+            ->with('success', "Requisição #{$requisition->id} excluída do histórico.");
+    }
+
     public function cancel(BookRequisition $requisition): RedirectResponse
     {
         if ($requisition->isDelivered() || $requisition->isDispatched()) {
@@ -223,11 +273,18 @@ class BookRequisitionController extends Controller
             return back()->with('error', 'Você não tem permissão para cancelar esta requisição.');
         }
 
-        if ($requisition->isApproved()) {
-            $requisition->book->increment('current_stock', $requisition->quantity);
-        }
+        DB::transaction(function () use ($requisition) {
+            if ($requisition->isApproved()) {
+                $withdrawal = StockWithdrawal::where('requisition_id', $requisition->id)->first();
+                if ($withdrawal) {
+                    $withdrawal->delete(); // observer restaura o estoque
+                } else {
+                    $requisition->book->increment('current_stock', $requisition->quantity);
+                }
+            }
 
-        $requisition->update(['status' => 'cancelled']);
+            $requisition->update(['status' => 'cancelled']);
+        });
 
         return redirect()->route('requisitions.index')
             ->with('success', 'Requisição cancelada.');

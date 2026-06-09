@@ -3,19 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Book extends Model
 {
     protected $fillable = [
-        'subject_id', 'title', 'isbn', 'author',
+        'title', 'isbn', 'author',
         'publisher', 'edition', 'current_stock', 'minimum_stock',
     ];
 
-    public function subject(): BelongsTo
+    public function subjects(): BelongsToMany
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsToMany(Subject::class);
     }
 
     public function stockEntries(): HasMany
@@ -26,6 +26,11 @@ class Book extends Model
     public function stockWithdrawals(): HasMany
     {
         return $this->hasMany(StockWithdrawal::class);
+    }
+
+    public function requisitions(): HasMany
+    {
+        return $this->hasMany(BookRequisition::class);
     }
 
     public function isLowStock(): bool

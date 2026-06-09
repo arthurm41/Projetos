@@ -29,7 +29,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $lowStockBooks = Book::with('subject')
+        $lowStockBooks = Book::with('subjects')
             ->whereColumn('current_stock', '<', 'minimum_stock')
             ->orderBy('current_stock')
             ->limit(5)
@@ -58,7 +58,9 @@ class DashboardController extends Controller
                 ->latest()
                 ->limit(5)
                 ->get();
-            $pendingCount = $pendingRequisitions->count();
+            $pendingCount = BookRequisition::where('requested_by', $user->id)
+                ->whereIn('status', ['pending', 'approved', 'dispatched'])
+                ->count();
             $dispatchedRequisitions = collect();
             $dispatchedCount = 0;
         }

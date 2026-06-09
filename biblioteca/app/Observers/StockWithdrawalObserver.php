@@ -32,14 +32,13 @@ class StockWithdrawalObserver
      */
     public function updated(StockWithdrawal $stockWithdrawal): void
     {
+        if (! $stockWithdrawal->wasChanged('quantity')) {
+            return;
+        }
+
         $book = $stockWithdrawal->book;
-
-        // Reverter o estoque anterior
         $book->current_stock += $stockWithdrawal->getOriginal('quantity');
-
-        // Aplicar o novo estoque
         $book->current_stock -= $stockWithdrawal->quantity;
-
         $book->save();
     }
 

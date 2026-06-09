@@ -22,11 +22,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock-entries', [StockEntryWebController::class, 'index'])->name('stock-entries.index');
     Route::get('/stock-entries/create', [StockEntryWebController::class, 'create'])->name('stock-entries.create');
     Route::post('/stock-entries', [StockEntryWebController::class, 'store'])->name('stock-entries.store');
+    Route::delete('/stock-entries/{stockEntry}', [StockEntryWebController::class, 'destroy'])->name('stock-entries.destroy');
 
     Route::get('/stock-withdrawals', [StockWithdrawalWebController::class, 'index'])->name('stock-withdrawals.index');
+    Route::delete('/stock-withdrawals/{stockWithdrawal}', [StockWithdrawalWebController::class, 'destroy'])->name('stock-withdrawals.destroy');
 
     Route::get('/low-stock', function () {
-        $books = \App\Models\Book::with('subject')
+        $books = \App\Models\Book::with('subjects')
             ->whereColumn('current_stock', '<', 'minimum_stock')
             ->orderBy('current_stock')
             ->paginate(20);
@@ -54,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/requisitions/{requisition}/dispatch', [BookRequisitionController::class, 'dispatch'])->name('requisitions.dispatch');
     Route::post('/requisitions/{requisition}/deliver', [BookRequisitionController::class, 'deliver'])->name('requisitions.deliver');
     Route::post('/requisitions/{requisition}/cancel', [BookRequisitionController::class, 'cancel'])->name('requisitions.cancel');
+    Route::delete('/requisitions/{requisition}', [BookRequisitionController::class, 'destroy'])->name('requisitions.destroy');
 
 });
 

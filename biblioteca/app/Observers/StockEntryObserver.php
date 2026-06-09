@@ -21,14 +21,13 @@ class StockEntryObserver
      */
     public function updated(StockEntry $stockEntry): void
     {
+        if (! $stockEntry->wasChanged('quantity')) {
+            return;
+        }
+
         $book = $stockEntry->book;
-
-        // Reverter o estoque anterior
         $book->current_stock -= $stockEntry->getOriginal('quantity');
-
-        // Aplicar o novo estoque
         $book->current_stock += $stockEntry->quantity;
-
         $book->save();
     }
 

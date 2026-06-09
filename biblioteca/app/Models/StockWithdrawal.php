@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class StockWithdrawal extends Model
 {
     protected $fillable = [
-        'book_id', 'user_id', 'quantity', 'stock_before',
+        'book_id', 'user_id', 'requisition_id', 'quantity', 'stock_before',
         'stock_after', 'class_group', 'reason', 'withdrawn_at',
     ];
 
@@ -22,5 +22,10 @@ class StockWithdrawal extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function requisition(): BelongsTo
+    {
+        return $this->belongsTo(BookRequisition::class);
     }
 }

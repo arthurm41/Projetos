@@ -15,7 +15,8 @@ class UpdateBookRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'subject_id'    => ['sometimes', 'integer', 'exists:subjects,id'],
+            'subject_ids'   => ['required', 'array', 'min:1'],
+            'subject_ids.*' => ['integer', 'exists:subjects,id'],
             'title'         => ['sometimes', 'string', 'max:255'],
             'isbn'          => ['sometimes', 'string', 'max:20', Rule::unique('books', 'isbn')->ignore($this->route('book'))],
             'author'        => ['nullable', 'string', 'max:200'],
@@ -28,8 +29,10 @@ class UpdateBookRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'subject_id.exists' => 'A matéria informada não existe.',
-            'isbn.unique'       => 'Este ISBN já está cadastrado em outro livro.',
+            'subject_ids.required' => 'Selecione ao menos uma matéria.',
+            'subject_ids.min'      => 'Selecione ao menos uma matéria.',
+            'subject_ids.*.exists' => 'Uma das matérias selecionadas é inválida.',
+            'isbn.unique'          => 'Este ISBN já está cadastrado em outro livro.',
         ];
     }
 }

@@ -402,7 +402,7 @@
                     @foreach($lowStockBooks as $book)
                     <tr class="border-b border-yellow-100">
                         <td class="py-2 font-medium text-gray-800">{{ $book->title }}</td>
-                        <td class="py-2 text-gray-500">{{ $book->subject->name }}</td>
+                        <td class="py-2 text-gray-500">{{ $book->subjects->pluck('name')->join(', ') }}</td>
                         <td class="py-2 text-center font-bold {{ $book->current_stock === 0 ? 'text-red-600' : 'text-yellow-600' }}">
                             {{ $book->current_stock }}
                         </td>

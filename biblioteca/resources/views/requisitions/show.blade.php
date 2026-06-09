@@ -36,7 +36,7 @@
                 </div>
                 <div>
                     <p class="text-gray-400 text-xs">Matéria</p>
-                    <p class="text-gray-800 mt-0.5">{{ $requisition->book->subject->name }}</p>
+                    <p class="text-gray-800 mt-0.5">{{ $requisition->book->subjects->pluck('name')->join(', ') }}</p>
                 </div>
                 <div>
                     <p class="text-gray-400 text-xs">Quantidade Solicitada</p>

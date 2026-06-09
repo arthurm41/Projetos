@@ -43,7 +43,7 @@
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 font-medium text-gray-900">{{ $book->title }}</td>
                             <td class="px-6 py-4 text-gray-400 text-xs">{{ $book->isbn }}</td>
-                            <td class="px-6 py-4 text-gray-500">{{ $book->subject->name }}</td>
+                            <td class="px-6 py-4 text-gray-500">{{ $book->subjects->pluck('name')->join(', ') }}</td>
                             <td class="px-6 py-4 text-center">
                                 <span class="font-bold text-lg {{ $book->current_stock === 0 ? 'text-red-600' : 'text-yellow-600' }}">
                                     {{ $book->current_stock }}

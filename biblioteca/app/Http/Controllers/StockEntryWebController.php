@@ -6,15 +6,29 @@ use App\Http\Requests\StoreStockEntryRequest;
 use App\Models\Book;
 use App\Models\StockEntry;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class StockEntryWebController extends Controller
 {
     public function index(): View
     {
-        $entries = StockEntry::with(['book.subject', 'user'])
-            ->latest()
-            ->paginate(15);
+        $query = StockEntry::with(['book.subjects', 'user'])->latest('received_at');
+
+        if ($search = request('search')) {
+            $query->whereHas('book', fn($b) => $b->where('title', 'like', "%{$search}%"));
+        }
+
+        if ($from = request('date_from')) {
+            $query->whereDate('received_at', '>=', $from);
+        }
+
+        if ($to = request('date_to')) {
+            $query->whereDate('received_at', '<=', $to);
+        }
+
+        $entries = $query->paginate(15)->withQueryString();
 
         return view('stock-entries.index', compact('entries'));
     }
@@ -36,9 +50,22 @@ class StockEntryWebController extends Controller
         $data['stock_before'] = $book->current_stock;
         $data['stock_after']  = $book->current_stock + $data['quantity'];
 
-        StockEntry::create($data);
+        $quantity = $data['quantity'];
+
+        DB::transaction(function () use ($data) {
+            StockEntry::create($data);
+        });
 
         return redirect()->route('stock-entries.index')
-            ->with('success', "Entrada de {$data['quantity']} unidade(s) registrada com sucesso.");
+            ->with('success', "Entrada de {$quantity} unidade(s) registrada com sucesso.");
+    }
+
+    public function destroy(StockEntry $stockEntry): RedirectResponse
+    {
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
+
+        $stockEntry->delete();
+
+        return back()->with('success', 'Registro de entrada excluído do histórico.');
     }
 }
