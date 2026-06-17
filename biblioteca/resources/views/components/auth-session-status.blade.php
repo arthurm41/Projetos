@@ -1,3 +1,4 @@
+{{-- Componente: exibe mensagem de status da sessão (ex: link de reset enviado, logout) --}}
 @props(['status'])
 
 @if ($status)

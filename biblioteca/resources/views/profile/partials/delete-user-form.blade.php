@@ -1,3 +1,4 @@
+{{-- Seção: Exclusão permanente da conta do usuário --}}
 <section class="space-y-6">
     <header>
         <h2 class="text-lg font-medium text-gray-900">
@@ -9,11 +10,13 @@
         </p>
     </header>
 
+    {{-- Botão vermelho "Delete Account" — abre o modal de confirmação --}}
     <x-danger-button
         x-data=""
         x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
     >{{ __('Delete Account') }}</x-danger-button>
 
+    {{-- Modal de confirmação de exclusão — exige senha para confirmar --}}
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
         <form method="post" action="{{ route('profile.destroy') }}" class="p-6">
             @csrf
@@ -27,6 +30,7 @@
                 {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
             </p>
 
+            {{-- Campo de senha para confirmar a exclusão da conta --}}
             <div class="mt-6">
                 <x-input-label for="password" value="{{ __('Password') }}" class="sr-only" />
 
@@ -42,10 +46,12 @@
             </div>
 
             <div class="mt-6 flex justify-end">
+                {{-- Botão "Cancelar" — fecha o modal sem excluir --}}
                 <x-secondary-button x-on:click="$dispatch('close')">
                     {{ __('Cancel') }}
                 </x-secondary-button>
 
+                {{-- Botão "Delete Account" — confirma e exclui a conta permanentemente --}}
                 <x-danger-button class="ms-3">
                     {{ __('Delete Account') }}
                 </x-danger-button>

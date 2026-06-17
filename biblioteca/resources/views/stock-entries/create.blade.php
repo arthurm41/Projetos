@@ -1,7 +1,11 @@
 <x-app-layout>
+    {{-- Título da aba do navegador --}}
     <x-slot name="title">Registrar Entrada</x-slot>
+
+    {{-- Cabeçalho com seta de voltar para o histórico de entradas --}}
     <x-slot name="header">
         <div class="flex items-center gap-3">
+            {{-- Seta de voltar para a listagem de entradas --}}
             <a href="{{ route('stock-entries.index') }}" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -13,27 +17,32 @@
 
     <div class="max-w-lg">
         <div class="bg-white rounded-xl shadow-sm p-6">
+            {{-- Formulário de registro de nova entrada de estoque --}}
             <form method="POST" action="{{ route('stock-entries.store') }}" class="space-y-5">
                 @csrf
 
+                {{-- Campo: seleção do livro que está recebendo o estoque --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Livro *</label>
                     <select name="book_id" required id="book-select"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 @error('book_id') border-red-400 @enderror">
                         <option value="">Selecione o livro...</option>
                         @foreach($books as $book)
+                            {{-- Cada opção exibe título, matéria(s) e estoque atual --}}
                             <option value="{{ $book->id }}"
                                     data-stock="{{ $book->current_stock }}"
                                     {{ old('book_id', request('book_id')) == $book->id ? 'selected' : '' }}>
-                                {{ $book->title }} ({{ $book->subject->name }}) — Estoque: {{ $book->current_stock }}
+                                {{ $book->title }} ({{ $book->subjects->pluck('name')->join(', ') }}) — Estoque: {{ $book->current_stock }}
                             </option>
                         @endforeach
                     </select>
                     @error('book_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Aviso com o estoque atual do livro selecionado — atualizado via JS --}}
                 <div id="stock-info" class="hidden p-3 bg-blue-50 rounded-lg text-sm text-blue-700"></div>
 
+                {{-- Campo: quantidade de exemplares que estão entrando no estoque --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade *</label>
                     <input type="number" name="quantity" value="{{ old('quantity') }}" min="1" required
@@ -41,6 +50,7 @@
                     @error('quantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Campo: observações sobre a entrada (ex: origem da remessa) --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
                     <textarea name="notes" rows="3" placeholder="Ex: Remessa recebida da editora..."
@@ -48,10 +58,12 @@
                 </div>
 
                 <div class="flex gap-3">
+                    {{-- Botão "Registrar Entrada" — salva a entrada e atualiza o estoque --}}
                     <button type="submit"
                             class="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
                         Registrar Entrada
                     </button>
+                    {{-- Botão "Cancelar" — descarta e volta para o histórico --}}
                     <a href="{{ route('stock-entries.index') }}"
                        class="px-6 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
                         Cancelar
@@ -62,6 +74,7 @@
     </div>
 
     <script>
+        // Atualiza o aviso de estoque atual ao trocar o livro selecionado
         document.getElementById('book-select').addEventListener('change', function() {
             const opt = this.options[this.selectedIndex];
             const info = document.getElementById('stock-info');
@@ -72,6 +85,7 @@
                 info.classList.add('hidden');
             }
         });
+        // Dispara o evento ao carregar a página (caso o livro já venha pré-selecionado via URL)
         document.getElementById('book-select').dispatchEvent(new Event('change'));
     </script>
 </x-app-layout>

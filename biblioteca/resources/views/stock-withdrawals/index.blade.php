@@ -1,33 +1,46 @@
 <x-app-layout>
+    {{-- Título da aba do navegador --}}
     <x-slot name="title">Saídas de Estoque</x-slot>
+
+    {{-- Cabeçalho da página --}}
     <x-slot name="header">
         <h2 class="text-xl font-semibold text-gray-800">Histórico de Saídas</h2>
     </x-slot>
 
-    {{-- Filtros --}}
+    {{-- Formulário de filtros da listagem de saídas --}}
     <form method="GET" action="{{ route('stock-withdrawals.index') }}" class="mb-4 bg-white rounded-xl shadow-sm p-4">
         <div class="flex flex-wrap gap-3 items-end">
+
+            {{-- Campo de busca por título do livro ou turma --}}
             <div class="flex-1 min-w-[180px]">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
                 <input type="text" name="search" value="{{ request('search') }}"
                        placeholder="Título do livro ou turma..."
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
             </div>
+
+            {{-- Filtro: data inicial do período --}}
             <div class="min-w-[130px]">
                 <label class="block text-xs font-medium text-gray-600 mb-1">De</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
             </div>
+
+            {{-- Filtro: data final do período --}}
             <div class="min-w-[130px]">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Até</label>
                 <input type="date" name="date_to" value="{{ request('date_to') }}"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
             </div>
+
             <div class="flex gap-2">
+                {{-- Botão para aplicar os filtros --}}
                 <button type="submit"
                         class="px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition-colors">
                     Filtrar
                 </button>
+
+                {{-- Botão "Limpar" aparece somente quando há filtros ativos --}}
                 @if(request()->hasAny(['search','date_from','date_to']))
                 <a href="{{ route('stock-withdrawals.index') }}"
                    class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
@@ -39,23 +52,28 @@
     </form>
 
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+
+        {{-- Faixa com total de resultados (aparece somente com filtros ativos) --}}
         @if(request()->hasAny(['search','date_from','date_to']))
         <div class="px-6 py-3 bg-orange-50 border-b border-orange-100 text-xs text-orange-700">
             {{ $withdrawals->total() }} resultado(s) encontrado(s)
         </div>
         @endif
+
         <div class="overflow-x-auto">
+            {{-- Tabela com o histórico de saídas de estoque --}}
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr class="text-left text-xs text-gray-500 uppercase">
-                        <th class="px-6 py-3">Data</th>
-                        <th class="px-6 py-3">Livro</th>
-                        <th class="px-6 py-3">Matéria</th>
-                        <th class="px-6 py-3 text-center">Qtd.</th>
-                        <th class="px-6 py-3 text-center">Antes</th>
-                        <th class="px-6 py-3 text-center">Depois</th>
-                        <th class="px-6 py-3">Turma</th>
-                        <th class="px-6 py-3">Motivo</th>
+                        <th class="px-6 py-3">Data</th>               {{-- Data/hora em que a saída foi registrada --}}
+                        <th class="px-6 py-3">Livro</th>              {{-- Título e ISBN do livro --}}
+                        <th class="px-6 py-3">Matéria</th>            {{-- Matéria(s) vinculadas ao livro --}}
+                        <th class="px-6 py-3 text-center">Qtd.</th>   {{-- Quantidade que saiu do estoque --}}
+                        <th class="px-6 py-3 text-center">Antes</th>  {{-- Estoque antes da saída --}}
+                        <th class="px-6 py-3 text-center">Depois</th> {{-- Estoque após a saída --}}
+                        <th class="px-6 py-3">Turma</th>              {{-- Turma que recebeu os livros --}}
+                        <th class="px-6 py-3">Motivo</th>             {{-- Justificativa da saída --}}
+                        {{-- Coluna de ação visível somente para o almoxarife --}}
                         @if(Auth::user()->hasRole('almoxarife'))
                         <th class="px-6 py-3 text-right">Ação</th>
                         @endif
@@ -73,22 +91,33 @@
                         </td>
                         <td class="px-6 py-4 text-gray-500">{{ $w->book->subjects->pluck('name')->join(', ') ?: '—' }}</td>
                         <td class="px-6 py-4 text-center">
+                            {{-- Quantidade exibida em laranja com sinal de - --}}
                             <span class="font-bold text-orange-500">-{{ $w->quantity }}</span>
                         </td>
                         <td class="px-6 py-4 text-center text-gray-500">{{ $w->stock_before }}</td>
                         <td class="px-6 py-4 text-center font-medium text-gray-800">{{ $w->stock_after }}</td>
                         <td class="px-6 py-4 text-gray-600">{{ $w->class_group ?? '—' }}</td>
                         <td class="px-6 py-4 text-gray-400 max-w-[180px] truncate">{{ $w->reason ?? '—' }}</td>
+
+                        {{-- Coluna de ação exclusiva do almoxarife --}}
                         @if(Auth::user()->hasRole('almoxarife'))
                         <td class="px-6 py-4 text-right">
+
+                            {{-- Componente Alpine.js que controla o modal de exclusão --}}
                             <div x-data="{ open: false }">
+
+                                {{-- Botão "Excluir" — abre o modal de confirmação --}}
                                 <button type="button" @click="open = true"
                                         class="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors">
                                     Excluir
                                 </button>
+
+                                {{-- Formulário oculto de DELETE — só é submetido ao confirmar no modal --}}
                                 <form x-ref="del" method="POST" action="{{ route('stock-withdrawals.destroy', $w) }}">
                                     @csrf @method('DELETE')
                                 </form>
+
+                                {{-- Modal de confirmação de exclusão da saída --}}
                                 <div x-show="open" x-cloak
                                      x-transition:enter="transition ease-out duration-200"
                                      x-transition:enter-start="opacity-0"
@@ -109,10 +138,12 @@
                                             <p class="text-sm text-gray-500 mt-1">O estoque do livro será restaurado. Esta ação não pode ser desfeita.</p>
                                         </div>
                                         <div class="flex gap-3 mt-6">
+                                            {{-- Botão "Não, voltar" — fecha o modal sem excluir --}}
                                             <button type="button" @click="open = false"
                                                     class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
                                                 Não, voltar
                                             </button>
+                                            {{-- Botão "Sim, excluir" — confirma e envia o formulário DELETE --}}
                                             <button type="button" @click="$refs.del.submit()"
                                                     class="flex-1 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors">
                                                 Sim, excluir
@@ -126,6 +157,7 @@
                     </tr>
                     @empty
                     <tr>
+                        {{-- Linha exibida quando não há saídas na listagem --}}
                         <td colspan="{{ Auth::user()->hasRole('almoxarife') ? 9 : 8 }}" class="px-6 py-12 text-center text-gray-400">
                             @if(request()->hasAny(['search','date_from','date_to']))
                                 Nenhuma saída encontrada para os filtros aplicados.
@@ -138,6 +170,8 @@
                 </tbody>
             </table>
         </div>
+
+        {{-- Paginação — aparece somente quando há mais de uma página de resultados --}}
         @if($withdrawals->hasPages())
         <div class="px-6 py-4 border-t border-gray-100">{{ $withdrawals->links() }}</div>
         @endif

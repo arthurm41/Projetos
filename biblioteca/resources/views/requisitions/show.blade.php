@@ -1,13 +1,18 @@
 <x-app-layout>
+    {{-- Título da aba do navegador --}}
     <x-slot name="title">Requisição #{{ $requisition->id }}</x-slot>
+
+    {{-- Cabeçalho com ID, status atual e seta de voltar --}}
     <x-slot name="header">
         <div class="flex items-center gap-3">
+            {{-- Seta de voltar para a listagem de requisições --}}
             <a href="{{ route('requisitions.index') }}" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
             </a>
             <h2 class="text-xl font-semibold text-gray-800">Requisição #{{ $requisition->id }}</h2>
+            {{-- Badge de status exibido ao lado do título --}}
             @if($requisition->isPending())
                 <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Pendente</span>
             @elseif($requisition->isApproved())
@@ -24,7 +29,7 @@
 
     <div class="max-w-2xl space-y-6">
 
-        {{-- Detalhes principais --}}
+        {{-- Card com os detalhes do pedido (livro, matéria, quantidade, turma, justificativa) --}}
         <div class="bg-white rounded-xl shadow-sm p-6 space-y-4">
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Detalhes do Pedido</h3>
 
@@ -53,7 +58,7 @@
             </div>
         </div>
 
-        {{-- Previsão de entrega --}}
+        {{-- Card de previsão de entrega — aparece após a aprovação da requisição --}}
         @if($requisition->estimated_delivery_from)
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-5">
             <div class="flex items-center gap-2 mb-3">
@@ -64,15 +69,16 @@
             </div>
             <p class="text-blue-700 text-sm">
                 De <span class="font-semibold">{{ $requisition->estimated_delivery_from->format('d/m/Y') }}</span>
-                até <span class="font-semibold">{{ $requisition->estimated_delivery_to->format('d/m/Y') }}</span>
+                até <span class="font-semibold">{{ $requisition->estimated_delivery_to?->format('d/m/Y') ?? '—' }}</span>
             </p>
-            @if($requisition->estimated_delivery_to->isPast() && !$requisition->isDelivered() && !$requisition->isCancelled())
+            {{-- Aviso de atraso se a previsão já expirou e o livro ainda não foi entregue --}}
+            @if($requisition->estimated_delivery_to?->isPast() && !$requisition->isDelivered() && !$requisition->isCancelled())
                 <p class="text-red-600 text-xs mt-1 font-medium">Previsão expirada — entre em contato com o almoxarife.</p>
             @endif
         </div>
         @endif
 
-        {{-- Detalhes da entrega (dispatched) --}}
+        {{-- Card com dados da entrega física — aparece quando o almoxarife confirma a entrega --}}
         @if($requisition->dispatched_at)
         <div class="bg-purple-50 border border-purple-200 rounded-xl p-5">
             <div class="flex items-center gap-2 mb-3">
@@ -94,10 +100,12 @@
         </div>
         @endif
 
-        {{-- Linha do tempo --}}
+        {{-- Linha do tempo com o histórico completo de eventos da requisição --}}
         <div class="bg-white rounded-xl shadow-sm p-6">
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Histórico</h3>
             <ol class="space-y-4 text-sm relative">
+
+                {{-- Evento: criação da requisição --}}
                 <li class="flex gap-3">
                     <div class="flex flex-col items-center">
                         <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 mt-1 shrink-0"></div>
@@ -109,6 +117,7 @@
                     </div>
                 </li>
 
+                {{-- Evento: aprovação pelo almoxarife --}}
                 @if($requisition->approved_at)
                 <li class="flex gap-3">
                     <div class="flex flex-col items-center">
@@ -128,6 +137,7 @@
                 </li>
                 @endif
 
+                {{-- Evento: entrega física pelo almoxarife --}}
                 @if($requisition->dispatched_at)
                 <li class="flex gap-3">
                     <div class="flex flex-col items-center">
@@ -142,6 +152,7 @@
                 </li>
                 @endif
 
+                {{-- Evento: confirmação de recebimento pelo professor --}}
                 @if($requisition->delivered_at)
                 <li class="flex gap-3">
                     <div class="flex flex-col items-center">
@@ -154,6 +165,7 @@
                 </li>
                 @endif
 
+                {{-- Evento: cancelamento --}}
                 @if($requisition->isCancelled())
                 <li class="flex gap-3">
                     <div class="w-2.5 h-2.5 rounded-full bg-red-400 mt-1 shrink-0"></div>
@@ -165,16 +177,18 @@
             </ol>
         </div>
 
-        {{-- Ações --}}
+        {{-- Área de botões de ação disponíveis para esta requisição --}}
         <div class="flex gap-3 flex-wrap">
 
-            {{-- Almoxarife: Aprovar (pendente) --}}
+            {{-- Botão "Aprovar e Separar Livros" — visível para o almoxarife em requisições pendentes --}}
             @if(Auth::user()->hasRole('almoxarife') && $requisition->isPending())
             <div x-data="{ open: false }">
                 <button type="button" @click="open = true"
                         class="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
                     Aprovar e Separar Livros
                 </button>
+
+                {{-- Modal para aprovar a requisição e definir previsão de entrega --}}
                 <div x-show="open" x-cloak
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0"
@@ -199,12 +213,14 @@
                         <form method="POST" action="{{ route('requisitions.approve', $requisition) }}">
                             @csrf
                             <div class="space-y-4">
+                                {{-- Campo: data inicial da previsão de entrega --}}
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1.5">Data inicial da previsão de entrega</label>
                                     <input type="date" name="estimated_delivery_from" required
                                            min="{{ date('Y-m-d') }}"
                                            class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 </div>
+                                {{-- Campo: data final da previsão de entrega --}}
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1.5">Data final da previsão de entrega</label>
                                     <input type="date" name="estimated_delivery_to" required
@@ -213,10 +229,12 @@
                                 </div>
                             </div>
                             <div class="flex gap-3 mt-6">
+                                {{-- Botão "Cancelar" — fecha o modal sem aprovar --}}
                                 <button type="button" @click="open = false"
                                         class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
                                     Cancelar
                                 </button>
+                                {{-- Botão "Aprovar" — confirma a aprovação da requisição --}}
                                 <button type="submit"
                                         class="flex-1 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 transition-colors">
                                     Aprovar
@@ -228,13 +246,15 @@
             </div>
             @endif
 
-            {{-- Almoxarife: Confirmar entrega (aprovado) --}}
+            {{-- Botão "Confirmar Entrega" — visível para o almoxarife em requisições aprovadas --}}
             @if(Auth::user()->hasRole('almoxarife') && $requisition->isApproved())
             <div x-data="{ open: false }">
                 <button type="button" @click="open = true"
                         class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
                     Confirmar Entrega
                 </button>
+
+                {{-- Modal para registrar a entrega física dos livros ao professor --}}
                 <div x-show="open" x-cloak
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0"
@@ -259,12 +279,14 @@
                         <form method="POST" action="{{ route('requisitions.dispatch', $requisition) }}">
                             @csrf
                             <div class="space-y-4">
+                                {{-- Campo: data e hora em que os livros foram entregues --}}
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1.5">Data e hora da entrega</label>
                                     <input type="datetime-local" name="dispatched_at" required
                                            value="{{ now()->format('Y-m-d\TH:i') }}"
                                            class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                                 </div>
+                                {{-- Campo: nome de quem retirou os livros fisicamente --}}
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1.5">Quem realizou a retirada</label>
                                     <input type="text" name="delivered_by" required
@@ -273,10 +295,12 @@
                                 </div>
                             </div>
                             <div class="flex gap-3 mt-6">
+                                {{-- Botão "Cancelar" — fecha o modal sem confirmar --}}
                                 <button type="button" @click="open = false"
                                         class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
                                     Cancelar
                                 </button>
+                                {{-- Botão "Confirmar Entrega" — registra a entrega dos livros --}}
                                 <button type="submit"
                                         class="flex-1 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-xl hover:bg-purple-700 transition-colors">
                                     Confirmar Entrega
@@ -288,7 +312,7 @@
             </div>
             @endif
 
-            {{-- Professor: Confirmar recebimento (em retirada) --}}
+            {{-- Botão "Confirmar Recebimento" — visível para o professor quando a requisição está "em retirada" --}}
             @if(!Auth::user()->hasRole('almoxarife') && $requisition->isDispatched() && $requisition->requested_by === Auth::id())
             <form method="POST" action="{{ route('requisitions.deliver', $requisition) }}">
                 @csrf
@@ -299,16 +323,20 @@
             </form>
             @endif
 
-            {{-- Cancelar --}}
+            {{-- Botão "Cancelar Requisição" — disponível para requisições pendentes ou aprovadas (não em retirada) --}}
             @if($requisition->isActive() && !$requisition->isDispatched())
             <div x-data="{ open: false }">
                 <button type="button" @click="open = true"
                         class="px-6 py-2 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors">
                     Cancelar Requisição
                 </button>
+
+                {{-- Formulário oculto de cancelamento --}}
                 <form x-ref="frm" method="POST" action="{{ route('requisitions.cancel', $requisition) }}">
                     @csrf
                 </form>
+
+                {{-- Modal de confirmação de cancelamento --}}
                 <div x-show="open" x-cloak
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0"
@@ -330,10 +358,12 @@
                             <p class="text-sm text-gray-500 mt-1">Esta ação não pode ser desfeita.</p>
                         </div>
                         <div class="flex gap-3 mt-6">
+                            {{-- Botão "Não, voltar" — fecha o modal sem cancelar --}}
                             <button type="button" @click="open = false"
                                     class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
                                 Não, voltar
                             </button>
+                            {{-- Botão "Sim, cancelar" — confirma o cancelamento da requisição --}}
                             <button type="button" @click="$refs.frm.submit()"
                                     class="flex-1 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors">
                                 Sim, cancelar

@@ -9,6 +9,7 @@ use App\Models\StockEntry;
 use App\Models\StockWithdrawal;
 use App\Models\Subject;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -90,6 +91,22 @@ class BookWebController extends Controller
 
         return redirect()->route('books.index')
             ->with('success', 'Livro atualizado com sucesso.');
+    }
+
+    public function adjustStock(Request $request, Book $book): RedirectResponse
+    {
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
+
+        $request->validate([
+            'current_stock' => ['required', 'integer', 'min:0'],
+        ], [
+            'current_stock.min' => 'O estoque não pode ser negativo.',
+        ]);
+
+        $book->current_stock = $request->integer('current_stock');
+        $book->save();
+
+        return back()->with('success', "Estoque de \"{$book->title}\" ajustado para {$book->current_stock} unidade(s).");
     }
 
     public function destroy(Book $book): RedirectResponse

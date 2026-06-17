@@ -12,7 +12,7 @@ class BookController extends ApiController
 {
     public function index(): JsonResponse
     {
-        $books = Book::with('subject')->orderBy('title')->get();
+        $books = Book::with('subjects')->orderBy('title')->get();
 
         return $this->success(BookResource::collection($books));
     }
@@ -20,14 +20,14 @@ class BookController extends ApiController
     public function store(StoreBookRequest $request): JsonResponse
     {
         $book = Book::create($request->validated());
-        $book->load('subject');
+        $book->load('subjects');
 
         return $this->success(new BookResource($book), 'Livro cadastrado com sucesso.', 201);
     }
 
     public function show(Book $book): JsonResponse
     {
-        $book->load('subject');
+        $book->load('subjects');
 
         return $this->success(new BookResource($book));
     }
@@ -35,7 +35,7 @@ class BookController extends ApiController
     public function update(UpdateBookRequest $request, Book $book): JsonResponse
     {
         $book->update($request->validated());
-        $book->load('subject');
+        $book->load('subjects');
 
         return $this->success(new BookResource($book), 'Livro atualizado com sucesso.');
     }
@@ -53,7 +53,7 @@ class BookController extends ApiController
 
     public function lowStock(): JsonResponse
     {
-        $books = Book::with('subject')
+        $books = Book::with('subjects')
             ->whereColumn('current_stock', '<', 'minimum_stock')
             ->orderBy('current_stock')
             ->get();

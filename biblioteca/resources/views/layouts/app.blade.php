@@ -3,22 +3,30 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        {{-- Token CSRF incluído como meta tag (usado por requisições AJAX) --}}
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        {{-- Título da página: exibe o slot $title se fornecido, senão usa o nome do app --}}
         <title>{{ isset($title) ? $title . ' — ' : '' }}{{ config('app.name', 'SenaiStock') }}</title>
 
+        {{-- Fonte Figtree carregada do Bunny CDN --}}
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        {{-- Tailwind CSS via CDN --}}
         <script src="https://cdn.tailwindcss.com"></script>
+        {{-- Alpine.js — reativo para modais, dropdowns e toasts --}}
         <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
 
+        {{-- Oculta elementos com x-cloak antes do Alpine.js inicializar (evita flash de conteúdo) --}}
         <style>[x-cloak] { display: none !important; }</style>
     </head>
     <body class="font-sans antialiased bg-gray-100">
         <div class="min-h-screen">
+            {{-- Barra de navegação superior — inclui logo, links e menu do usuário --}}
             @include('layouts.navigation')
 
+            {{-- Cabeçalho da página (slot opcional enviado por cada view) --}}
             @isset($header)
                 <header class="bg-white shadow">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -27,6 +35,7 @@
                 </header>
             @endisset
 
+            {{-- Conteúdo principal da página (slot obrigatório) --}}
             <main class="py-8">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {{ $slot }}
@@ -34,9 +43,14 @@
             </main>
         </div>
 
-        {{-- Toasts --}}
+        {{-- ================================================ --}}
+        {{-- Sistema de notificações (Toasts)                 --}}
+        {{-- Exibido no canto superior direito da tela        --}}
+        {{-- Auto-dispensável via Alpine.js com setTimeout    --}}
+        {{-- ================================================ --}}
         <div class="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none" style="min-width: 320px">
 
+            {{-- Toast verde de sucesso — aparece quando a sessão tem chave 'success' --}}
             @if(session('success'))
             <div x-data="{ show: true }"
                  x-show="show"
@@ -58,6 +72,7 @@
                     <p class="text-sm font-semibold text-gray-900">Sucesso</p>
                     <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{{ session('success') }}</p>
                 </div>
+                {{-- Botão "X" para fechar o toast manualmente --}}
                 <button @click="show = false" class="text-gray-400 hover:text-gray-600 transition-colors mt-0.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -66,6 +81,7 @@
             </div>
             @endif
 
+            {{-- Toast vermelho de erro — aparece quando a sessão tem chave 'error' --}}
             @if(session('error'))
             <div x-data="{ show: true }"
                  x-show="show"
@@ -87,6 +103,7 @@
                     <p class="text-sm font-semibold text-gray-900">Erro</p>
                     <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{{ session('error') }}</p>
                 </div>
+                {{-- Botão "X" para fechar o toast de erro manualmente --}}
                 <button @click="show = false" class="text-gray-400 hover:text-gray-600 transition-colors mt-0.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>

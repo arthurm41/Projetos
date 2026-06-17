@@ -17,11 +17,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('books', BookWebController::class)->except('show');
+    Route::post('/books/{book}/adjust-stock', [BookWebController::class, 'adjustStock'])->name('books.adjust-stock');
     Route::resource('subjects', SubjectWebController::class)->except('show');
 
     Route::get('/stock-entries', [StockEntryWebController::class, 'index'])->name('stock-entries.index');
     Route::get('/stock-entries/create', [StockEntryWebController::class, 'create'])->name('stock-entries.create');
     Route::post('/stock-entries', [StockEntryWebController::class, 'store'])->name('stock-entries.store');
+    Route::get('/stock-entries/{stockEntry}/edit', [StockEntryWebController::class, 'edit'])->name('stock-entries.edit');
+    Route::put('/stock-entries/{stockEntry}', [StockEntryWebController::class, 'update'])->name('stock-entries.update');
     Route::delete('/stock-entries/{stockEntry}', [StockEntryWebController::class, 'destroy'])->name('stock-entries.destroy');
 
     Route::get('/stock-withdrawals', [StockWithdrawalWebController::class, 'index'])->name('stock-withdrawals.index');

@@ -1,7 +1,11 @@
 <x-app-layout>
+    {{-- Título da aba do navegador --}}
     <x-slot name="title">Novo Livro</x-slot>
+
+    {{-- Cabeçalho da página --}}
     <x-slot name="header">
         <div class="flex items-center gap-3">
+            {{-- Seta de voltar para o catálogo de livros --}}
             <a href="{{ route('books.index') }}" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -13,9 +17,12 @@
 
     <div class="max-w-2xl">
         <div class="bg-white rounded-xl shadow-sm p-6">
+
+            {{-- Formulário de cadastro de novo livro --}}
             <form method="POST" action="{{ route('books.store') }}" class="space-y-5">
                 @csrf
 
+                {{-- Campo: título do livro (obrigatório) --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Título *</label>
                     <input type="text" name="title" value="{{ old('title') }}" required
@@ -23,6 +30,7 @@
                     @error('title') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Campo: ISBN do livro (obrigatório) --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ISBN *</label>
                     <input type="text" name="isbn" value="{{ old('isbn') }}" required placeholder="978-00-000-0000-0"
@@ -30,11 +38,13 @@
                     @error('isbn') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Campo: seleção de matéria(s) por checkboxes (obrigatório ao menos uma) --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Matéria(s) *
                         <span class="text-xs font-normal text-gray-400 ml-1">Selecione uma ou mais</span>
                     </label>
+                    {{-- Grade de checkboxes — cada checkbox representa uma matéria cadastrada no sistema --}}
                     <div class="grid grid-cols-2 gap-2">
                         @foreach($subjects as $subject)
                         <label class="flex items-center gap-2.5 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors">
@@ -48,6 +58,7 @@
                     @error('subject_ids') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Campos: autor e editora lado a lado --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Autor</label>
@@ -61,6 +72,7 @@
                     </div>
                 </div>
 
+                {{-- Campos: edição e estoque mínimo lado a lado --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Edição</label>
@@ -68,6 +80,7 @@
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
+                        {{-- Estoque mínimo: quantidade abaixo da qual o livro é marcado como "Baixo" --}}
                         <label class="block text-sm font-medium text-gray-700 mb-1">Estoque Mínimo</label>
                         <input type="number" name="minimum_stock" value="{{ old('minimum_stock', 10) }}" min="0"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -75,10 +88,13 @@
                 </div>
 
                 <div class="flex gap-3 pt-2">
+                    {{-- Botão "Cadastrar Livro" — envia o formulário para salvar o novo livro --}}
                     <button type="submit"
                             class="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                         Cadastrar Livro
                     </button>
+
+                    {{-- Botão "Cancelar" — descarta o cadastro e volta para o catálogo --}}
                     <a href="{{ route('books.index') }}"
                        class="px-6 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
                         Cancelar

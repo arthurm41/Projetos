@@ -1,6 +1,9 @@
+{{-- Componente: dropdown genérico com Alpine.js --}}
+{{-- Props: align (left|right|top), width (48 ou valor Tailwind), contentClasses --}}
 @props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white'])
 
 @php
+// Define a classe de alinhamento do dropdown conforme a prop 'align'
 $alignmentClasses = match ($align) {
     'left' => 'ltr:origin-top-left rtl:origin-top-right start-0',
     'top' => 'origin-top',
@@ -13,11 +16,14 @@ $width = match ($width) {
 };
 @endphp
 
+{{-- Wrapper do dropdown — fecha ao clicar fora --}}
 <div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
+    {{-- Slot do botão/trigger que abre o dropdown --}}
     <div @click="open = ! open">
         {{ $trigger }}
     </div>
 
+    {{-- Painel do dropdown com animação de entrada/saída --}}
     <div x-show="open"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
@@ -29,6 +35,7 @@ $width = match ($width) {
             style="display: none;"
             @click="open = false">
         <div class="rounded-md ring-1 ring-black ring-opacity-5 {{ $contentClasses }}">
+            {{-- Slot com os itens do dropdown --}}
             {{ $content }}
         </div>
     </div>

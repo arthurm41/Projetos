@@ -1,10 +1,13 @@
 <x-guest-layout>
 <div class="min-h-screen flex">
 
-    {{-- Painel esquerdo — marca --}}
+    {{-- ====================================================== --}}
+    {{-- PAINEL ESQUERDO — Marca e apresentação do sistema      --}}
+    {{-- Visível apenas em telas grandes (lg:) --}}
+    {{-- ====================================================== --}}
     <div class="hidden lg:flex lg:w-1/2 bg-red-600 flex-col justify-between p-12 relative overflow-hidden">
 
-        {{-- Padrão decorativo de fundo --}}
+        {{-- Padrão de grade decorativo no fundo do painel --}}
         <div class="absolute inset-0 opacity-10">
             <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -16,11 +19,11 @@
             </svg>
         </div>
 
-        {{-- Círculos decorativos --}}
+        {{-- Círculos decorativos de fundo --}}
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-5 rounded-full"></div>
         <div class="absolute -bottom-32 -left-16 w-80 h-80 bg-white opacity-5 rounded-full"></div>
 
-        {{-- Logo --}}
+        {{-- Logo do sistema no topo do painel --}}
         <div class="relative z-10 flex items-center gap-3">
             <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +34,7 @@
             <span class="text-white text-xl font-bold tracking-tight">SenaiStock</span>
         </div>
 
-        {{-- Conteúdo central --}}
+        {{-- Título e descrição do sistema --}}
         <div class="relative z-10 space-y-6">
             <div>
                 <p class="text-red-200 text-sm font-medium uppercase tracking-widest mb-3">Sistema de Gestão</p>
@@ -43,6 +46,7 @@
                 </p>
             </div>
 
+            {{-- Lista de funcionalidades em destaque --}}
             <div class="space-y-3">
                 @foreach([
                     ['icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'label' => 'Requisições de livros por professores'],
@@ -61,7 +65,7 @@
             </div>
         </div>
 
-        {{-- Rodapé do painel --}}
+        {{-- Rodapé do painel com nome da instituição --}}
         <div class="relative z-10">
             <p class="text-red-300 text-xs">
                 SENAI — Serviço Nacional de Aprendizagem Industrial
@@ -69,11 +73,13 @@
         </div>
     </div>
 
-    {{-- Painel direito — formulário --}}
+    {{-- ====================================================== --}}
+    {{-- PAINEL DIREITO — Formulário de login                   --}}
+    {{-- ====================================================== --}}
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
         <div class="w-full max-w-md">
 
-            {{-- Logo mobile --}}
+            {{-- Logo do sistema exibida somente em mobile (painel esquerdo fica oculto) --}}
             <div class="flex items-center gap-3 mb-10 lg:hidden">
                 <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,24 +90,24 @@
                 <span class="text-gray-800 text-xl font-bold">SenaiStock</span>
             </div>
 
-            {{-- Cabeçalho --}}
+            {{-- Saudação do formulário --}}
             <div class="mb-8">
                 <h2 class="text-2xl font-bold text-gray-900">Bem-vindo de volta</h2>
                 <p class="text-gray-500 text-sm mt-1">Entre com suas credenciais para continuar</p>
             </div>
 
-            {{-- Alerta de sessão (ex: logout, password reset) --}}
+            {{-- Alerta de sessão (ex: mensagem após reset de senha ou logout) --}}
             @if (session('status'))
                 <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
                     {{ session('status') }}
                 </div>
             @endif
 
-            {{-- Formulário --}}
+            {{-- Formulário de autenticação --}}
             <form method="POST" action="{{ route('login') }}" class="space-y-5">
                 @csrf
 
-                {{-- E-mail --}}
+                {{-- Campo de e-mail --}}
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">
                         E-mail
@@ -130,10 +136,11 @@
                     @enderror
                 </div>
 
-                {{-- Senha --}}
+                {{-- Campo de senha com link "Esqueceu a senha?" --}}
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
                         <label for="password" class="block text-sm font-medium text-gray-700">Senha</label>
+                        {{-- Link para redefinição de senha --}}
                         @if (Route::has('password.request'))
                             <a href="{{ route('password.request') }}"
                                class="text-xs text-red-600 hover:text-red-700 font-medium">
@@ -165,7 +172,7 @@
                     @enderror
                 </div>
 
-                {{-- Lembrar-me --}}
+                {{-- Checkbox "Manter conectado" (lembrar sessão) --}}
                 <div class="flex items-center gap-2.5">
                     <input id="remember_me" type="checkbox" name="remember"
                            class="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer">
@@ -174,7 +181,7 @@
                     </label>
                 </div>
 
-                {{-- Botão --}}
+                {{-- Botão "Entrar" — submete o formulário de login --}}
                 <button type="submit"
                         class="w-full py-3 px-4 bg-red-600 hover:bg-red-700 active:bg-red-800
                                text-white text-sm font-semibold rounded-xl transition-colors
@@ -187,7 +194,7 @@
                 </button>
             </form>
 
-            {{-- Rodapé --}}
+            {{-- Rodapé com nome do sistema --}}
             <p class="mt-8 text-center text-xs text-gray-400">
                 SenaiStock · Sistema de Controle de Estoque
             </p>

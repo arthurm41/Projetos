@@ -120,10 +120,7 @@ class BookRequisitionController extends Controller
 
     public function approve(BookRequisition $requisition, Request $request): RedirectResponse
     {
-        if (! Auth::user()->hasRole('almoxarife')) {
-            return redirect()->route('requisitions.index')
-                ->with('error', 'Apenas o almoxarife pode aprovar requisições.');
-        }
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
 
         if (! $requisition->isPending()) {
             return back()->with('error', 'Apenas requisições pendentes podem ser aprovadas.');
@@ -188,10 +185,7 @@ class BookRequisitionController extends Controller
 
     public function dispatch(BookRequisition $requisition, Request $request): RedirectResponse
     {
-        if (! Auth::user()->hasRole('almoxarife')) {
-            return redirect()->route('requisitions.index')
-                ->with('error', 'Apenas o almoxarife pode confirmar a entrega.');
-        }
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
 
         if (! $requisition->isApproved()) {
             return back()->with('error', 'Apenas requisições aprovadas podem ser confirmadas para entrega.');

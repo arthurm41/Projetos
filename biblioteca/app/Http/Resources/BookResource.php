@@ -19,7 +19,7 @@ class BookResource extends JsonResource
             'current_stock' => $this->current_stock,
             'minimum_stock' => $this->minimum_stock,
             'is_low_stock'  => $this->isLowStock(),
-            'subject'       => new SubjectResource($this->whenLoaded('subject')),
+            'subjects'      => SubjectResource::collection($this->whenLoaded('subjects')),
             'created_at'    => $this->created_at?->toDateTimeString(),
             'updated_at'    => $this->updated_at?->toDateTimeString(),
         ];

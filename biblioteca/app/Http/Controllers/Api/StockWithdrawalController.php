@@ -12,7 +12,7 @@ class StockWithdrawalController extends ApiController
 {
     public function index(): JsonResponse
     {
-        $withdrawals = StockWithdrawal::with(['book.subject', 'user'])
+        $withdrawals = StockWithdrawal::with(['book.subjects', 'user'])
             ->latest()
             ->paginate(15);
 
@@ -38,7 +38,7 @@ class StockWithdrawalController extends ApiController
         $data['stock_after']  = $book->current_stock - $data['quantity'];
 
         $withdrawal = StockWithdrawal::create($data);
-        $withdrawal->load(['book.subject', 'user']);
+        $withdrawal->load(['book.subjects', 'user']);
 
         return $this->success(
             new StockWithdrawalResource($withdrawal),
@@ -49,7 +49,7 @@ class StockWithdrawalController extends ApiController
 
     public function show(StockWithdrawal $stockWithdrawal): JsonResponse
     {
-        $stockWithdrawal->load(['book.subject', 'user']);
+        $stockWithdrawal->load(['book.subjects', 'user']);
 
         return $this->success(new StockWithdrawalResource($stockWithdrawal));
     }

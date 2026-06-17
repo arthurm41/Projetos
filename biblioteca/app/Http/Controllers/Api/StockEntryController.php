@@ -12,7 +12,7 @@ class StockEntryController extends ApiController
 {
     public function index(): JsonResponse
     {
-        $entries = StockEntry::with(['book.subject', 'user'])
+        $entries = StockEntry::with(['book.subjects', 'user'])
             ->latest()
             ->paginate(15);
 
@@ -31,14 +31,14 @@ class StockEntryController extends ApiController
         $data['stock_after']  = $book->current_stock + $data['quantity'];
 
         $entry = StockEntry::create($data);
-        $entry->load(['book.subject', 'user']);
+        $entry->load(['book.subjects', 'user']);
 
         return $this->success(new StockEntryResource($entry), 'Entrada de estoque registrada com sucesso.', 201);
     }
 
     public function show(StockEntry $stockEntry): JsonResponse
     {
-        $stockEntry->load(['book.subject', 'user']);
+        $stockEntry->load(['book.subjects', 'user']);
 
         return $this->success(new StockEntryResource($stockEntry));
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreStockEntryRequest;
+use App\Http\Requests\UpdateStockEntryRequest;
 use App\Models\Book;
 use App\Models\StockEntry;
 use Illuminate\Http\RedirectResponse;
@@ -35,13 +36,16 @@ class StockEntryWebController extends Controller
 
     public function create(): View
     {
-        $books = Book::with('subject')->orderBy('title')->get();
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
+
+        $books = Book::with('subjects')->orderBy('title')->get();
 
         return view('stock-entries.create', compact('books'));
     }
 
     public function store(StoreStockEntryRequest $request): RedirectResponse
     {
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
         $data = $request->validated();
         $book = Book::findOrFail($data['book_id']);
 
@@ -58,6 +62,31 @@ class StockEntryWebController extends Controller
 
         return redirect()->route('stock-entries.index')
             ->with('success', "Entrada de {$quantity} unidade(s) registrada com sucesso.");
+    }
+
+    public function edit(StockEntry $stockEntry): View
+    {
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
+
+        $stockEntry->load('book.subjects');
+
+        return view('stock-entries.edit', compact('stockEntry'));
+    }
+
+    public function update(UpdateStockEntryRequest $request, StockEntry $stockEntry): RedirectResponse
+    {
+        abort_unless(Auth::user()->hasRole('almoxarife'), 403);
+
+        $data = $request->validated();
+        $data['received_at'] = $data['received_at'] ?? $stockEntry->received_at;
+        $data['stock_after'] = $stockEntry->stock_before + $data['quantity'];
+
+        DB::transaction(function () use ($stockEntry, $data) {
+            $stockEntry->update($data);
+        });
+
+        return redirect()->route('stock-entries.index')
+            ->with('success', 'Entrada de estoque atualizada com sucesso.');
     }
 
     public function destroy(StockEntry $stockEntry): RedirectResponse
